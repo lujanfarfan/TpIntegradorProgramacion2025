@@ -7,17 +7,16 @@
 #define TIPO_PANCHO 0
 #define TIPO_HAMBURGUESA 1
 
-typedef struct{
+typedef struct {
     bool chedar;
     bool provoleta;
     bool bacon;
     bool tomate;
     bool lechuga;
     bool quesoDambo;
-}ingredientes;
+} ingredientes;
 
-
-typedef struct{
+typedef struct {
     bool mostaza;
     bool barbacoa;
     bool cesar;
@@ -25,7 +24,7 @@ typedef struct{
     bool mayonesa;
     bool salsGolf;
     bool aderezoEspecial;
-}condimentos;
+} condimentos;
 
 typedef struct Nodo {
     int tipo;
@@ -38,6 +37,7 @@ typedef struct Nodo {
     struct Nodo *siguiente;
 } Nodo;
 
+
 typedef struct {
     int tipo;
     char variante[60];
@@ -47,10 +47,39 @@ typedef struct {
     condimentos condimentos;
     int opcion;
 } RegistroProducto;
-Nodo *crearNodo(int tipo, char *variante, char *descripcion, float precio, ingredientes ingredientes, condimentos condimentos, int opcion);
-void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float precio, ingredientes ingredientes, condimentos condimentos, int opcion);
-void cargarCatalogoInicial(Nodo **cabeza, FILE **archivoCatlogo, char *nombreArchivoCatalogo);
+
+typedef struct ItemPedido {
+    struct Nodo *producto;
+    int cantidad;
+    float subtotal;
+    struct ItemPedido *siguiente;
+} ItemPedido;
+
+
+typedef struct Pedido {
+    int id_pedido;
+    char cliente[40];
+    ItemPedido *items;
+    float total;
+    bool metodo_pago;
+    struct Pedido *siguiente;
+} Pedido;
+
+
+
+
+Nodo *crearNodo(int tipo, char *variante, char *descripcion, float precio, ingredientes ing, condimentos cond, int opcion);
+void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float precio, ingredientes ing, condimentos cond, int opcion);
+void cargarCatalogoInicial(Nodo **cabeza, FILE **catalogo, char *nombreArchivo);
 void recorrerArchivo_filtrado(FILE **pf, char *nombreArchivo, int tipoFiltrar);
+Nodo* buscarPorOpcion(Nodo *cabeza, int opcion);
+void agregarItemAlPedido(Pedido *pedido, Nodo *prod, int cantidad);
+void encolarPedido(Pedido **primero, Pedido **ultimo, Pedido *nuevo);
+Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo);
+void entregarPedido(Pedido **primero, Pedido **ultimo);
+void menu();
+
+
 int main(void)
 {
     srand(time(NULL));
@@ -67,38 +96,47 @@ int main(void)
     printf("tipo de PANCHOS \n");
     recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_PANCHO);
 
+    Pedido *p = armarPedido(catalogo, &archivoCatalogo, nombreArchivoCatalogo);
+
+
+
+
 
 
     return 0;
 }
-Nodo *crearNodo(int tipo, char *variante, char *descripcion, float precio, ingredientes ingredientes, condimentos condimentos, int opcion)
+
+void menu() {
+    printf("`");
+}
+
+
+
+Nodo *crearNodo(int tipo, char *variante, char *descripcion, float precio, ingredientes ing, condimentos cond, int opcion)
 {
     Nodo *n = (Nodo*)malloc(sizeof(Nodo));
     if (!n) {
-        printf("No se pudo asignar memoria\n");
+        printf("no se pudo asignar memoria\n");
         return NULL;
     }
+
     n->tipo = tipo;
 
-
-
-    strncpy(n->variante,  variante,  sizeof(n->variante)  - 1);
-
+    strncpy(n->variante, variante, sizeof(n->variante) - 1);
     strncpy(n->descripcion, descripcion, sizeof(n->descripcion) - 1);
-
-    n->precio= precio;
-    n->ingredientes = ingredientes;
-    n->condimentos = condimentos;
+    n->precio = precio;
+    n->ingredientes = ing;
+    n->condimentos  = cond;
     n->opcion = opcion;
-
     n->siguiente = NULL;
     return n;
 }
 
-void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float precio, ingredientes ingredientes, condimentos condimentos, int opcion)
+void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float precio, ingredientes ing, condimentos cond, int opcion)
 {
-    Nodo *nuevo = crearNodo(tipo, variante, descripcion, precio, ingredientes, condimentos, opcion);
-    if (!nuevo) {
+    Nodo *nuevo = crearNodo(tipo, variante, descripcion, precio, ing, cond, opcion);
+    if (!nuevo){
+      printf("no se pudo crear el nodo  \n");
         return;
     }
 
@@ -106,17 +144,15 @@ void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float 
         *cabeza = nuevo;
         return;
     }
-
     Nodo *aux = *cabeza;
-    if (*cabeza == NULL) {
-        *cabeza = nuevo;
-        return;
-    }
-    while (aux->siguiente != NULL) {
+    while (aux->siguiente) {
         aux = aux->siguiente;
     }
     aux->siguiente = nuevo;
+
 }
+
+
 void cargarCatalogoInicial(Nodo **cabeza, FILE **catalogo, char *nombreArchivo)
 {
     *catalogo = fopen(nombreArchivo, "wb");
@@ -192,6 +228,7 @@ void cargarCatalogoInicial(Nodo **cabeza, FILE **catalogo, char *nombreArchivo)
 
 }
 
+
 void recorrerArchivo_filtrado(FILE **catalogo, char *nombreArchivo, int tipoFiltrar)
 {
     *catalogo = fopen(nombreArchivo, "rb");
@@ -206,9 +243,9 @@ void recorrerArchivo_filtrado(FILE **catalogo, char *nombreArchivo, int tipoFilt
         if (tipoFiltrar == -1 || r.tipo == tipoFiltrar) {
             hay = 1;
             if (r.tipo == TIPO_HAMBURGUESA)
-                printf("--- HAMBURGUESA (OPCION %d) ---\n", r.opcion);
+                printf("--- HAMBURGUESA OPCION %d ---\n", r.opcion);
             else
-                printf("--- PANCHO (OPCION %d) ---\n", r.opcion);
+                printf("--- PANCHO OPCION %d ---\n", r.opcion);
             printf("%s\n%s\n$%.2f\n\n", r.variante, r.descripcion, r.precio);
         }
     }
@@ -228,6 +265,7 @@ void recorrerArchivo_filtrado(FILE **catalogo, char *nombreArchivo, int tipoFilt
     fclose(*catalogo);
 
 }
+
 Nodo* buscarPorOpcion(Nodo *cabeza, int opcion)
 {
     while (cabeza) {
