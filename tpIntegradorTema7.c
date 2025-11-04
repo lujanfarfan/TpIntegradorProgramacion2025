@@ -37,15 +37,38 @@ typedef struct Nodo {
     int opcion;
     struct Nodo *siguiente;
 } Nodo;
+
+typedef struct {
+    int tipo;
+    char variante[60];
+    char descripcion[100];
+    float precio;
+    ingredientes ingredientes;
+    condimentos condimentos;
+    int opcion;
+} RegistroProducto;
 Nodo *crearNodo(int tipo, char *variante, char *descripcion, float precio, ingredientes ingredientes, condimentos condimentos, int opcion);
 void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float precio, ingredientes ingredientes, condimentos condimentos, int opcion);
-void cargarCatalogoInicial(Nodo **cabeza);
-
+void cargarCatalogoInicial(Nodo **cabeza, FILE **archivoCatlogo, char *nombreArchivoCatalogo);
+void recorrerArchivo_filtrado(FILE **pf, char *nombreArchivo, int tipoFiltrar);
 int main(void)
 {
     srand(time(NULL));
+    FILE *archivoCatalogo = NULL;
+    char nombreArchivoCatalogo[] = "catalogo.bin";
     Nodo *catalogo = NULL;
-    cargarCatalogoInicial(&catalogo);
+
+
+    cargarCatalogoInicial(&catalogo, &archivoCatalogo, nombreArchivoCatalogo);
+
+    printf("tipo de HAMBURGUESAS \n");
+    recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_HAMBURGUESA);
+
+    printf("tipo de PANCHOS \n");
+    recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_PANCHO);
+
+
+
     return 0;
 }
 Nodo *crearNodo(int tipo, char *variante, char *descripcion, float precio, ingredientes ingredientes, condimentos condimentos, int opcion)
@@ -94,46 +117,115 @@ void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float 
     }
     aux->siguiente = nuevo;
 }
-void cargarCatalogoInicial(Nodo **cabeza){
-    ingredientes ing_1 = { true, false, true, false, false, false };
-    condimentos  cond_1 = { false, false, false, true, false, false, true };
-    insertar(cabeza, TIPO_HAMBURGUESA,
-             "Hamburguesa Juli crack",
-             "Nuestra hamburguesa estrella, la favorita de messi, trae doble Carne, doble cheddar, bacon y nuestro aderezo especial",
+void cargarCatalogoInicial(Nodo **cabeza, FILE **catalogo, char *nombreArchivo)
+{
+    *catalogo = fopen(nombreArchivo, "wb");
+    if (!*catalogo) {
+        printf("no se pudo abrir el archivo  \n");
+        return;
+    }
+    RegistroProducto r;
+    ingredientes ing_1 = (ingredientes){ true, false, true, false, false, false };
+    condimentos  cond_1 = (condimentos){ false, false, false, true, false, false, true };
+    insertar(cabeza, TIPO_HAMBURGUESA, "Hamburguesa Juli crack",
+             "Doble carne, doble cheddar, bacon y aderezo especial",
              15000, ing_1, cond_1, 1);
+    r.tipo = TIPO_HAMBURGUESA;
+    strcpy(r.variante, "Hamburguesa Juli crack");
+    strcpy(r.descripcion, "Doble carne, doble cheddar, bacon y aderezo especial");
+    r.precio = 15000; r.ingredientes = ing_1; r.condimentos = cond_1; r.opcion = 1;
+    fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
 
-    ingredientes ing_2 = { false, true, false, true, true, false };
-    condimentos  cond_2 = { false, false, false, false, true, false, false };
-    insertar(cabeza, TIPO_HAMBURGUESA,
-             "Hamburguesa King Gaston ",
-             "La hamburguesa favorita de la Reina Isabel segunda, tiene doble carne, provoleta, tomate, lechuga y mayonesa",
+    ingredientes ing_2 = (ingredientes){ false, true, false, true, true, false };
+    condimentos  cond_2 = (condimentos){ false, false, false, false, true, false, false };
+    insertar(cabeza, TIPO_HAMBURGUESA, "Hamburguesa King Gaston",
+             "Doble carne, provoleta, tomate, lechuga y mayonesa",
              19000, ing_2, cond_2, 2);
+    r.tipo = TIPO_HAMBURGUESA;
+    strcpy(r.variante, "Hamburguesa King Gaston");
+    strcpy(r.descripcion, "Doble carne, provoleta, tomate, lechuga y mayonesa");
+    r.precio = 19000; r.ingredientes = ing_2; r.condimentos = cond_2; r.opcion = 2;
+    fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
 
-    ingredientes ing_3 = { true, false, true, true, true, false };
-    condimentos  cond_3 = { false, true, false, false, false, false, false };
-    insertar(cabeza, TIPO_HAMBURGUESA,
-             "Hamburguesa Junior Engenieer",
+    ingredientes ing_3 = (ingredientes){ true, false, true, true, true, false };
+    condimentos  cond_3 = (condimentos){ false, true, false, false, false, false, false };
+    insertar(cabeza, TIPO_HAMBURGUESA, "Hamburguesa Junior Engineer",
              "Triple carne, triple cheddar, bacon, tomate, lechuga y barbacoa",
-             18500.0f, ing_3, cond_3, 3);
+             18500, ing_3, cond_3, 3);
+    r.tipo = TIPO_HAMBURGUESA;
+    strcpy(r.variante, "Hamburguesa Junior Engineer");
+    strcpy(r.descripcion, "Triple carne, triple cheddar, bacon, tomate, lechuga y barbacoa");
+    r.precio = 18500; r.ingredientes = ing_3; r.condimentos = cond_3; r.opcion = 3;
+    fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
 
-    ingredientes ing_p1 = { true, false, true, false, false, false };
-    condimentos  cond_p1 = { false, false, false, false, false, false, false };
-    insertar(cabeza,  TIPO_PANCHO,
-             "Panchito hoy se salio",
-             "Cheddar y lluvia de bacon",
-             6000, ing_p1, cond_p1, 4);
+    ingredientes ing_p1 = (ingredientes){ true, false, true, false, false, false };
+    condimentos  cond_p1 = (condimentos){ false, false, false, false, false, false, false };
+    insertar(cabeza, TIPO_PANCHO, "Panchito hoy se salio",
+             "Cheddar y lluvia de bacon", 6000, ing_p1, cond_p1, 4);
+    r.tipo = TIPO_PANCHO;
+    strcpy(r.variante, "Panchito hoy se salio");
+    strcpy(r.descripcion, "Cheddar y lluvia de bacon");
+    r.precio = 6000; r.ingredientes = ing_p1; r.condimentos = cond_p1; r.opcion = 4;
+    fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
 
-    ingredientes ing_p2 = { false, true, true, false, false, false };
-    condimentos  cond_p2 = { false, false, false, false, false, false, true };
-    insertar(cabeza,  TIPO_PANCHO,
-             "Panchito subte e",
-             "Provoleta, aderezo especial y bacon",
-             7500, ing_p2, cond_p2, 5);
+    ingredientes ing_p2 = (ingredientes){ false, true, true, false, false, false };
+    condimentos  cond_p2 = (condimentos){ false, false, false, false, false, false, true };
+    insertar(cabeza, TIPO_PANCHO, "Panchito subte E",
+             "Provoleta, aderezo especial y bacon", 7500, ing_p2, cond_p2, 5);
+    r.tipo = TIPO_PANCHO;
+    strcpy(r.variante, "Panchito subte E");
+    strcpy(r.descripcion, "Provoleta, aderezo especial y bacon");
+    r.precio = 7500; r.ingredientes = ing_p2; r.condimentos = cond_p2; r.opcion = 5;
+    fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
 
-    ingredientes ing_p3 = { true, false, false, false, false, false };
-    condimentos  cond_p3 = { false, false, false, false, false, false, false };
-    insertar(cabeza, TIPO_PANCHO,
-             "Panchito soy Ucemer",
-             "Cheddar + frase motivadora",
-             8200, ing_p3, cond_p3, 6);
+    ingredientes ing_p3 = (ingredientes){ true, false, false, false, false, false };
+    condimentos  cond_p3 = (condimentos){ false, false, false, false, false, false, false };
+    insertar(cabeza, TIPO_PANCHO, "Panchito soy Ucemer",
+             "Cheddar + frase motivadora", 8200, ing_p3, cond_p3, 6);
+    r.tipo = TIPO_PANCHO;
+    strcpy(r.variante, "Panchito soy Ucemer");
+    strcpy(r.descripcion, "Cheddar + frase motivadora");
+    r.precio = 8200; r.ingredientes = ing_p3; r.condimentos = cond_p3; r.opcion = 6;
+    fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
+
+    fclose(*catalogo);
+
 }
+
+void recorrerArchivo_filtrado(FILE **catalogo, char *nombreArchivo, int tipoFiltrar)
+{
+    *catalogo = fopen(nombreArchivo, "rb");
+    if (!*catalogo) {
+        printf("no se pudo abrir el archivo \n");
+        return;
+    }
+
+    RegistroProducto r;
+    int hay = 0;
+    while (fread(&r, sizeof(RegistroProducto), 1, *catalogo) == 1) {
+        if (tipoFiltrar == -1 || r.tipo == tipoFiltrar) {
+            hay = 1;
+            if (r.tipo == TIPO_HAMBURGUESA)
+                printf("--- HAMBURGUESA (OPCION %d) ---\n", r.opcion);
+            else
+                printf("--- PANCHO (OPCION %d) ---\n", r.opcion);
+            printf("%s\n%s\n$%.2f\n\n", r.variante, r.descripcion, r.precio);
+        }
+    }
+
+    if (!hay) {
+        if (tipoFiltrar == TIPO_HAMBURGUESA) {
+            printf("lpn no se guardo bien\n");
+        }
+        else if (tipoFiltrar == TIPO_PANCHO) {
+            printf("lpn no se guardo bien\n");
+        }
+        else {
+            printf("bua no hay ni producos\n");
+        }
+    }
+
+    fclose(*catalogo);
+
+}
+
