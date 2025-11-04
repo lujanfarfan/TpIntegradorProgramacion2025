@@ -228,4 +228,132 @@ void recorrerArchivo_filtrado(FILE **catalogo, char *nombreArchivo, int tipoFilt
     fclose(*catalogo);
 
 }
+Nodo* buscarPorOpcion(Nodo *cabeza, int opcion)
+{
+while (cabeza) {
+if (cabeza->opcion == opcion) {
+return cabeza;
+}
+cabeza = cabeza->siguiente;
+}
+return NULL;
+}
 
+void agregarItemAlPedido(Pedido *pedido, Nodo *prod, int cantidad)
+{
+if (!pedido || !prod || cantidad <= 0) {
+return;
+}
+
+ItemPedido *nuevo = (ItemPedido*)malloc(sizeof(ItemPedido));
+if (!nuevo) {
+printf("no se pudo asignar memoria para item\n");
+return;
+}
+
+nuevo->producto = prod;
+nuevo->cantidad = cantidad;
+nuevo->subtotal = prod->precio * cantidad;
+nuevo->siguiente = NULL;
+
+if (!pedido->items) {
+pedido->items = nuevo;
+} else {
+ItemPedido *aux = pedido->items;
+while (aux->siguiente) aux = aux->siguiente;
+aux->siguiente = nuevo;
+}
+
+pedido->total += nuevo->subtotal;
+}
+
+void encolarPedido(Pedido **primero, Pedido **ultimo, Pedido *nuevo)
+{
+if (!nuevo) return;
+nuevo->siguiente = NULL;
+
+if (!*primero) {
+*primero = *ultimo = nuevo;
+} else {
+(*ultimo)->siguiente = nuevo;
+*ultimo = nuevo;
+}
+}
+
+
+Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo)
+{
+if (!catalogo) {
+printf("no hay catalogo en memoria\n");
+return NULL;
+}
+
+
+Pedido *p = (Pedido*)malloc(sizeof(Pedido));
+if (!p) {
+printf("no se pudo asignar memoria para pedido\n");
+return NULL;
+}
+
+p->id_pedido = rand()%1000;
+p->items = NULL;
+p->total = 0.0f;
+p->metodo_pago = false;
+p->siguiente = NULL;
+
+printf("ingrese su nombre: ");
+fflush(stdin);
+fgets(p->cliente, sizeof(p->cliente), stdin);
+printf("HOLA %s BIENVENIDO A -MC KITTEN-! TU ID DE PEDIDO ES #%d\n", p->cliente, p->id_pedido);
+
+int seguir = 1;
+while (seguir) {
+int tipo;
+printf("que queres pedir? (0 = PANCHOS, 1 = HAMBURGUESAS): ");
+scanf("%d", &tipo);
+
+if (tipo == TIPO_PANCHO) {
+printf("=== CATALOGO PANCHOS ===\n");
+recorrerArchivo_filtrado(pf, nombreArchivo, TIPO_PANCHO);
+} else if (tipo == TIPO_HAMBURGUESA) {
+printf("=== CATALOGO HAMBURGUESAS ===\n");
+recorrerArchivo_filtrado(pf, nombreArchivo, TIPO_HAMBURGUESA);
+} else {
+printf("opcion invalida\n");
+continue;
+}
+
+int opcionElegida = 0, cantidad = 0;
+printf("ingrese el numero de OPCION del producto: ");
+scanf("%d", &opcionElegida);
+printf("cantidad: ");
+scanf("%d", &cantidad);
+
+Nodo *prod = buscarPorOpcion(catalogo, opcionElegida);
+if (!prod) {
+printf("no existe la opcion %d\n", opcionElegida);
+} else if (prod->tipo != tipo) {
+printf("la opcion %d no es del tipo elegido\n", opcionElegida);
+} else {
+agregarItemAlPedido(p, prod, cantidad);
+printf("agregado: %s x%d ($%.2f c/u) -> subtotal: $%.2f total: $%.2f\n",
+prod->variante, cantidad, prod->precio, prod->precio*cantidad, p->total);
+}
+
+printf("\nagregar otro producto? (1 = si, 0 = no): ");
+scanf("%d", &seguir);
+}
+
+printf("===== RESUMEN PEDIDO #%d =====\n", p->id_pedido);
+printf("Cliente: %s\n", p->cliente);
+ItemPedido *aux = p->items;
+if (!aux) printf("(sin items)\n");
+while (aux) {
+printf(" - %s x%d ($%.2f c/u) -> $%.2f\n",
+aux->producto->variante, aux->cantidad, aux->producto->precio, aux->subtotal);
+aux = aux->siguiente;
+}
+printf("TOTAL: $%.2f\n", p->total);
+
+return p;
+}
