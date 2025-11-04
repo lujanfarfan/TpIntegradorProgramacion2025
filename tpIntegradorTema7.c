@@ -229,3 +229,5 @@ void recorrerArchivo_filtrado(FILE **catalogo, char *nombreArchivo, int tipoFilt
 
 }
 
+
+
