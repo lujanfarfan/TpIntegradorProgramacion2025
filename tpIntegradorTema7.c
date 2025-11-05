@@ -5,15 +5,15 @@
 #include <stdbool.h>
 
 /*
- 2) meter en la struct algo para manejar el estado entregado
- 3) cuando se entrega un pedido se actualice el estado
- 4) que con el fseek se busque el que se elimino y se escriba lo demas en otro archivo que sea los que no se entregaron
- 5) lo que si se elimino se agrega a un archivo de entregados
- 6) comentar codigo
- 7) identar
- 8) funcion salir
- 9) funcion limpiar memoria
- 10) diagramas
+ 1) meter en la struct algo para manejar el estado entregado
+ 2) cuando se entrega un pedido se actualice el estado
+ 3) que con el fseek se busque el que se elimino y se escriba lo demas en otro archivo que sea los que no se entregaron
+ 4) lo que si se elimino se agrega a un archivo de entregados
+
+ 5) comentar codigo
+ 6) identar (por ahora hecho)
+ 7) funcion salir
+ 8) diagramas
  */
 
 #define TIPO_PANCHO 0
@@ -114,16 +114,20 @@ int main(void)
 
 
 
-liberar_espacio(catalogo) ;
+    liberar_espacio(catalogo) ;
     return 0;
 }
 
-void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo) {
-    printf("Bienvenido a MC-KITTEN \n");
+void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo) 
+{
+    FILE*historial= NULL ;
+    char*nombre_historial= "historial.bin" ;
     int opcion;
-FILE*historial= NULL ;
-char*nombre_historial= "historial.bin" ;
-    do {
+
+    printf("Bienvenido a MC-KITTEN \n");
+   
+    do 
+    {
         printf("BIENVENIDO AL MENU \n");
         printf("elija su opcion: \n");
         printf("1) crear pedido \n");
@@ -132,38 +136,40 @@ char*nombre_historial= "historial.bin" ;
         printf("4)  salir \n");
 
         scanf("%d", &opcion);
-        switch (opcion) {
+        switch (opcion) 
+        {
             case 1:
-                cargarCatalogoInicial(&catalogo, &archivoCatalogo, nombreArchivoCatalogo);
+                    cargarCatalogoInicial(&catalogo, &archivoCatalogo, nombreArchivoCatalogo);
 
-            printf("tipo de HAMBURGUESAS \n");
-            recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_HAMBURGUESA);
+                    printf("tipo de HAMBURGUESAS \n");
+                    recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_HAMBURGUESA);
 
-            printf("tipo de PANCHOS \n");
-            recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_PANCHO);
+                    printf("tipo de PANCHOS \n");
+                    recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_PANCHO);
 
-            Pedido *p = armarPedido(catalogo, &archivoCatalogo, nombreArchivoCatalogo, historial, nombre_historial);
-            break;
+                    Pedido *p = armarPedido(catalogo, &archivoCatalogo, nombreArchivoCatalogo, historial, nombre_historial);
+                    break;
 
             case 2:
-                entregarPedido(&p, &catalogo);
-            mostrarColaPedidos(p);
-            break;
+                    entregarPedido(&p, &catalogo);
+                    mostrarColaPedidos(p);
+                    break;
             case 3:
-                verHistorialPedidos (historial, nombre_historial) ;
-                registroVentas();
-            break;
+                    verHistorialPedidos (historial, nombre_historial) ;
+                    registroVentas();
+                    break;
             case 4:
-                printf("salir \n");
-            break;
+                    printf("salir \n");
+                    break;
             default:
-                printf("Opcion no valida\n");
-            break;
+                    printf("Opcion no valida\n");
+                    break;
 
 
         }
 
-    }while(opcion!=4);
+    } 
+        while(opcion!=4);
 }
 
 
@@ -171,40 +177,45 @@ char*nombre_historial= "historial.bin" ;
 Nodo *crearNodo(int tipo, char *variante, char *descripcion, float precio, ingredientes ing, condimentos cond, int opcion)
 {
     Nodo *n = (Nodo*)malloc(sizeof(Nodo));
-    if (!n) {
+    if (!n) 
+    {
         printf("no se pudo asignar memoria\n");
         return NULL;
     }
 
-    n->tipo = tipo;
+        n->tipo = tipo;
 
-    strncpy(n->variante, variante, sizeof(n->variante) - 1);
-    strncpy(n->descripcion, descripcion, sizeof(n->descripcion) - 1);
-    n->precio = precio;
-    n->ingredientes = ing;
-    n->condimentos  = cond;
-    n->opcion = opcion;
-    n->siguiente = NULL;
+        strncpy(n->variante, variante, sizeof(n->variante) - 1);
+        strncpy(n->descripcion, descripcion, sizeof(n->descripcion) - 1);
+        n->precio = precio;
+        n->ingredientes = ing;
+        n->condimentos  = cond;
+        n->opcion = opcion;
+        n->siguiente = NULL;
+
     return n;
 }
 
 void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float precio, ingredientes ing, condimentos cond, int opcion)
 {
     Nodo *nuevo = crearNodo(tipo, variante, descripcion, precio, ing, cond, opcion);
-    if (!nuevo){
-      printf("no se pudo crear el nodo  \n");
+    if (!nuevo)
+    {
+        printf("no se pudo crear el nodo  \n");
         return;
     }
 
-    if (*cabeza == NULL) {
-        *cabeza = nuevo;
-        return;
-    }
-    Nodo *aux = *cabeza;
-    while (aux->siguiente) {
-        aux = aux->siguiente;
-    }
-    aux->siguiente = nuevo;
+        if (*cabeza == NULL)
+        {
+            *cabeza = nuevo;
+            return;
+        }
+            Nodo *aux = *cabeza;
+            while (aux->siguiente) 
+            {
+                aux = aux->siguiente;
+            }
+                aux->siguiente = nuevo;
 
 }
 
@@ -212,73 +223,74 @@ void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float 
 void cargarCatalogoInicial(Nodo **cabeza, FILE **catalogo, char *nombreArchivo)
 {
     *catalogo = fopen(nombreArchivo, "wb");
-    if (!*catalogo) {
+    if (!*catalogo) 
+    {
         printf("no se pudo abrir el archivo  \n");
         return;
     }
-    RegistroProducto r;
-    ingredientes ing_1 = (ingredientes){ true, false, true, false, false, false };
-    condimentos  cond_1 = (condimentos){ false, false, false, true, false, false, true };
-    insertar(cabeza, TIPO_HAMBURGUESA, "Hamburguesa Juli crack",
-             "Doble carne, doble cheddar, bacon y aderezo especial",
-             15000, ing_1, cond_1, 1);
-    r.tipo = TIPO_HAMBURGUESA;
-    strcpy(r.variante, "Hamburguesa Juli crack");
-    strcpy(r.descripcion, "Doble carne, doble cheddar, bacon y aderezo especial");
-    r.precio = 15000; r.ingredientes = ing_1; r.condimentos = cond_1; r.opcion = 1;
-    fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
+        RegistroProducto r;
+        ingredientes ing_1 = (ingredientes){ true, false, true, false, false, false };
+        condimentos  cond_1 = (condimentos){ false, false, false, true, false, false, true };
+        insertar(cabeza, TIPO_HAMBURGUESA, "Hamburguesa Juli crack",
+                "Doble carne, doble cheddar, bacon y aderezo especial",
+                15000, ing_1, cond_1, 1);
+        r.tipo = TIPO_HAMBURGUESA;
+        strcpy(r.variante, "Hamburguesa Juli crack");
+        strcpy(r.descripcion, "Doble carne, doble cheddar, bacon y aderezo especial");
+        r.precio = 15000; r.ingredientes = ing_1; r.condimentos = cond_1; r.opcion = 1;
+        fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
 
-    ingredientes ing_2 = (ingredientes){ false, true, false, true, true, false };
-    condimentos  cond_2 = (condimentos){ false, false, false, false, true, false, false };
-    insertar(cabeza, TIPO_HAMBURGUESA, "Hamburguesa King Gaston",
-             "Doble carne, provoleta, tomate, lechuga y mayonesa",
-             19000, ing_2, cond_2, 2);
-    r.tipo = TIPO_HAMBURGUESA;
-    strcpy(r.variante, "Hamburguesa King Gaston");
-    strcpy(r.descripcion, "Doble carne, provoleta, tomate, lechuga y mayonesa");
-    r.precio = 19000; r.ingredientes = ing_2; r.condimentos = cond_2; r.opcion = 2;
-    fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
+        ingredientes ing_2 = (ingredientes){ false, true, false, true, true, false };
+        condimentos  cond_2 = (condimentos){ false, false, false, false, true, false, false };
+        insertar(cabeza, TIPO_HAMBURGUESA, "Hamburguesa King Gaston",
+                "Doble carne, provoleta, tomate, lechuga y mayonesa",
+                19000, ing_2, cond_2, 2);
+        r.tipo = TIPO_HAMBURGUESA;
+        strcpy(r.variante, "Hamburguesa King Gaston");
+        strcpy(r.descripcion, "Doble carne, provoleta, tomate, lechuga y mayonesa");
+        r.precio = 19000; r.ingredientes = ing_2; r.condimentos = cond_2; r.opcion = 2;
+        fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
 
-    ingredientes ing_3 = (ingredientes){ true, false, true, true, true, false };
-    condimentos  cond_3 = (condimentos){ false, true, false, false, false, false, false };
-    insertar(cabeza, TIPO_HAMBURGUESA, "Hamburguesa Junior Engineer",
-             "Triple carne, triple cheddar, bacon, tomate, lechuga y barbacoa",
-             18500, ing_3, cond_3, 3);
-    r.tipo = TIPO_HAMBURGUESA;
-    strcpy(r.variante, "Hamburguesa Junior Engineer");
-    strcpy(r.descripcion, "Triple carne, triple cheddar, bacon, tomate, lechuga y barbacoa");
-    r.precio = 18500; r.ingredientes = ing_3; r.condimentos = cond_3; r.opcion = 3;
-    fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
+        ingredientes ing_3 = (ingredientes){ true, false, true, true, true, false };
+        condimentos  cond_3 = (condimentos){ false, true, false, false, false, false, false };
+        insertar(cabeza, TIPO_HAMBURGUESA, "Hamburguesa Junior Engineer",
+                "Triple carne, triple cheddar, bacon, tomate, lechuga y barbacoa",
+                18500, ing_3, cond_3, 3);
+        r.tipo = TIPO_HAMBURGUESA;
+        strcpy(r.variante, "Hamburguesa Junior Engineer");
+        strcpy(r.descripcion, "Triple carne, triple cheddar, bacon, tomate, lechuga y barbacoa");
+        r.precio = 18500; r.ingredientes = ing_3; r.condimentos = cond_3; r.opcion = 3;
+        fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
 
-    ingredientes ing_p1 = (ingredientes){ true, false, true, false, false, false };
-    condimentos  cond_p1 = (condimentos){ false, false, false, false, false, false, false };
-    insertar(cabeza, TIPO_PANCHO, "Panchito hoy se salio",
-             "Cheddar y lluvia de bacon", 6000, ing_p1, cond_p1, 4);
-    r.tipo = TIPO_PANCHO;
-    strcpy(r.variante, "Panchito hoy se salio");
-    strcpy(r.descripcion, "Cheddar y lluvia de bacon");
-    r.precio = 6000; r.ingredientes = ing_p1; r.condimentos = cond_p1; r.opcion = 4;
-    fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
+        ingredientes ing_p1 = (ingredientes){ true, false, true, false, false, false };
+        condimentos  cond_p1 = (condimentos){ false, false, false, false, false, false, false };
+        insertar(cabeza, TIPO_PANCHO, "Panchito hoy se salio",
+                "Cheddar y lluvia de bacon", 6000, ing_p1, cond_p1, 4);
+        r.tipo = TIPO_PANCHO;
+        strcpy(r.variante, "Panchito hoy se salio");
+        strcpy(r.descripcion, "Cheddar y lluvia de bacon");
+        r.precio = 6000; r.ingredientes = ing_p1; r.condimentos = cond_p1; r.opcion = 4;
+        fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
 
-    ingredientes ing_p2 = (ingredientes){ false, true, true, false, false, false };
-    condimentos  cond_p2 = (condimentos){ false, false, false, false, false, false, true };
-    insertar(cabeza, TIPO_PANCHO, "Panchito subte E",
-             "Provoleta, aderezo especial y bacon", 7500, ing_p2, cond_p2, 5);
-    r.tipo = TIPO_PANCHO;
-    strcpy(r.variante, "Panchito subte E");
-    strcpy(r.descripcion, "Provoleta, aderezo especial y bacon");
-    r.precio = 7500; r.ingredientes = ing_p2; r.condimentos = cond_p2; r.opcion = 5;
-    fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
+        ingredientes ing_p2 = (ingredientes){ false, true, true, false, false, false };
+        condimentos  cond_p2 = (condimentos){ false, false, false, false, false, false, true };
+        insertar(cabeza, TIPO_PANCHO, "Panchito subte E",
+                "Provoleta, aderezo especial y bacon", 7500, ing_p2, cond_p2, 5);
+        r.tipo = TIPO_PANCHO;
+        strcpy(r.variante, "Panchito subte E");
+        strcpy(r.descripcion, "Provoleta, aderezo especial y bacon");
+        r.precio = 7500; r.ingredientes = ing_p2; r.condimentos = cond_p2; r.opcion = 5;
+        fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
 
-    ingredientes ing_p3 = (ingredientes){ true, false, false, false, false, false };
-    condimentos  cond_p3 = (condimentos){ false, false, false, false, false, false, false };
-    insertar(cabeza, TIPO_PANCHO, "Panchito soy Ucemer",
-             "Cheddar + frase motivadora", 8200, ing_p3, cond_p3, 6);
-    r.tipo = TIPO_PANCHO;
-    strcpy(r.variante, "Panchito soy Ucemer");
-    strcpy(r.descripcion, "Cheddar + frase motivadora");
-    r.precio = 8200; r.ingredientes = ing_p3; r.condimentos = cond_p3; r.opcion = 6;
-    fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
+        ingredientes ing_p3 = (ingredientes){ true, false, false, false, false, false };
+        condimentos  cond_p3 = (condimentos){ false, false, false, false, false, false, false };
+        insertar(cabeza, TIPO_PANCHO, "Panchito soy Ucemer",
+                "Cheddar + frase motivadora", 8200, ing_p3, cond_p3, 6);
+        r.tipo = TIPO_PANCHO;
+        strcpy(r.variante, "Panchito soy Ucemer");
+        strcpy(r.descripcion, "Cheddar + frase motivadora");
+        r.precio = 8200; r.ingredientes = ing_p3; r.condimentos = cond_p3; r.opcion = 6;
+        fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
 
     fclose(*catalogo);
 
@@ -288,35 +300,43 @@ void cargarCatalogoInicial(Nodo **cabeza, FILE **catalogo, char *nombreArchivo)
 void recorrerArchivo_filtrado(FILE **catalogo, char *nombreArchivo, int tipoFiltrar)
 {
     *catalogo = fopen(nombreArchivo, "rb");
-    if (!*catalogo) {
+    if (!*catalogo)
+    {
         printf("no se pudo abrir el archivo \n");
         return;
     }
 
-    RegistroProducto r;
-    int hay = 0;
-    while (fread(&r, sizeof(RegistroProducto), 1, *catalogo) == 1) {
-        if (tipoFiltrar == -1 || r.tipo == tipoFiltrar) {
-            hay = 1;
-            if (r.tipo == TIPO_HAMBURGUESA)
-                printf("--- HAMBURGUESA OPCION %d ---\n", r.opcion);
-            else
-                printf("--- PANCHO OPCION %d ---\n", r.opcion);
-            printf("%s\n%s\n$%.2f\n\n", r.variante, r.descripcion, r.precio);
-        }
-    }
+        RegistroProducto r;
+        int hay = 0;
+        while (fread(&r, sizeof(RegistroProducto), 1, *catalogo) == 1) 
+        {
+            if (tipoFiltrar == -1 || r.tipo == tipoFiltrar)
+             {
+                hay = 1;
+                if (r.tipo == TIPO_HAMBURGUESA)
+                    printf("--- HAMBURGUESA OPCION %d ---\n", r.opcion);
+                else
+                    printf("--- PANCHO OPCION %d ---\n", r.opcion);
 
-    if (!hay) {
-        if (tipoFiltrar == TIPO_HAMBURGUESA) {
-            printf("lpn no se guardo bien\n");
+                printf("%s\n%s\n$%.2f\n\n", r.variante, r.descripcion, r.precio);
+            }
         }
-        else if (tipoFiltrar == TIPO_PANCHO) {
-            printf("lpn no se guardo bien\n");
-        }
-        else {
-            printf("bua no hay ni producos\n");
-        }
-    }
+
+            if (!hay) 
+            {
+                if (tipoFiltrar == TIPO_HAMBURGUESA) 
+                {
+                    printf("lpn no se guardo bien\n");
+                }
+                else if (tipoFiltrar == TIPO_PANCHO) 
+                {
+                    printf("lpn no se guardo bien\n");
+                }
+                else 
+                {
+                    printf("bua no hay ni producos\n");
+                }
+            }
 
     fclose(*catalogo);
 
@@ -324,42 +344,51 @@ void recorrerArchivo_filtrado(FILE **catalogo, char *nombreArchivo, int tipoFilt
 
 Nodo* buscarPorOpcion(Nodo *cabeza, int opcion)
 {
-    while (cabeza) {
-        if (cabeza->opcion == opcion) {
+    while (cabeza) 
+    {
+        if (cabeza->opcion == opcion) 
+        {
             return cabeza;
         }
-        cabeza = cabeza->siguiente;
+            cabeza = cabeza->siguiente;
     }
+
     return NULL;
 }
 
 void agregarItemAlPedido(Pedido *pedido, Nodo *prod, int cantidad)
 {
-    if (!pedido || !prod || cantidad <= 0) {
+    if (!pedido || !prod || cantidad <= 0) 
+    {
         return;
     }
 
-    ItemPedido *nuevo = (ItemPedido*)malloc(sizeof(ItemPedido));
-    if (!nuevo) {
-        printf("no se pudo asignar memoria para item\n");
-        return;
-    }
+        ItemPedido *nuevo = (ItemPedido*)malloc(sizeof(ItemPedido));
 
-    nuevo->producto = prod;
-    nuevo->cantidad = cantidad;
-    nuevo->subtotal = prod->precio * cantidad;
-    nuevo->siguiente = NULL;
+        if (!nuevo) 
+        {
+            printf("no se pudo asignar memoria para item\n");
+            return;
+        }
 
-    if (!pedido->items) {
-        pedido->items = nuevo;
-    } else {
-        ItemPedido *aux = pedido->items;
-        while (aux->siguiente) aux = aux->siguiente;
-        aux->siguiente = nuevo;
-    }
+            nuevo->producto = prod;
+            nuevo->cantidad = cantidad;
+            nuevo->subtotal = prod->precio * cantidad;
+            nuevo->siguiente = NULL;
 
-    pedido->total += nuevo->subtotal;
-liberar_espacio_item(nuevo) ;
+            if (!pedido->items) 
+            {
+                pedido->items = nuevo;
+            } 
+            else 
+            {
+                ItemPedido *aux = pedido->items;
+                while (aux->siguiente) aux = aux->siguiente;
+                aux->siguiente = nuevo;
+            }
+
+                pedido->total += nuevo->subtotal;
+                liberar_espacio_item(nuevo) ;
 }
 
 void encolarPedido(Pedido **primero, Pedido **ultimo, Pedido *nuevo)
@@ -367,9 +396,12 @@ void encolarPedido(Pedido **primero, Pedido **ultimo, Pedido *nuevo)
     if (!nuevo) return;
     nuevo->siguiente = NULL;
 
-    if (!*primero) {
+    if (!*primero) 
+    {
         *primero = *ultimo = nuevo;
-    } else {
+    } 
+    else 
+    {
         (*ultimo)->siguiente = nuevo;
         *ultimo = nuevo;
     }
@@ -378,91 +410,105 @@ void encolarPedido(Pedido **primero, Pedido **ultimo, Pedido *nuevo)
 
 Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE*historial, char*nombre_historial )
 {
-    if (!catalogo) {
+    if (!catalogo) 
+    {
         printf("no hay catalogo en memoria\n");
         return NULL;
     }
 
 
-    Pedido *p = (Pedido*)malloc(sizeof(Pedido));
-    if (!p) {
-        printf("no se pudo asignar memoria para pedido\n");
-        return NULL;
-    }
-
-    p->id_pedido = rand()%1000;
-    p->items = NULL;
-    p->total = 0.0f;
-    p->metodo_pago = false;
-    p->siguiente = NULL;
-
-    printf("ingrese su nombre: ");
-    fflush(stdin);
-    fgets(p->cliente, sizeof(p->cliente), stdin);
-    printf("HOLA %s BIENVENIDO A -MC KITTEN-! TU ID DE PEDIDO ES #%d\n", p->cliente, p->id_pedido);
-
-    int seguir = 1;
-    while (seguir) {
-        int tipo;
-        printf("que queres pedir? (0 = PANCHOS, 1 = HAMBURGUESAS): ");
-        scanf("%d", &tipo);
-
-        if (tipo == TIPO_PANCHO) {
-            printf("=== CATALOGO PANCHOS ===\n");
-            recorrerArchivo_filtrado(pf, nombreArchivo, TIPO_PANCHO);
-        } else if (tipo == TIPO_HAMBURGUESA) {
-            printf("=== CATALOGO HAMBURGUESAS ===\n");
-            recorrerArchivo_filtrado(pf, nombreArchivo, TIPO_HAMBURGUESA);
-        } else {
-            printf("opcion invalida\n");
-            continue;
+        Pedido *p = (Pedido*)malloc(sizeof(Pedido));
+        if (!p) 
+        {
+            printf("no se pudo asignar memoria para pedido\n");
+            return NULL;
         }
 
-        int opcionElegida = 0, cantidad = 0;
-        printf("ingrese el numero de OPCION del producto: ");
-        scanf("%d", &opcionElegida);
-        printf("cantidad: ");
-        scanf("%d", &cantidad);
-        cant_total+= cantidad ;
+            p->id_pedido = rand()%1000;
+            p->items = NULL;
+            p->total = 0.0f;
+            p->metodo_pago = false;
+            p->siguiente = NULL;
 
-        Nodo *prod = buscarPorOpcion(catalogo, opcionElegida);
-        if (!prod) {
-            printf("no existe la opcion %d\n", opcionElegida);
-        } else if (prod->tipo != tipo) {
-            printf("la opcion %d no es del tipo elegido\n", opcionElegida);
-        } else {
-            agregarItemAlPedido(p, prod, cantidad);
-            printf("agregado: %s x%d ($%.2f c/u) -> subtotal: $%.2f  total: $%.2f\n",
-                   prod->variante, cantidad, prod->precio, prod->precio*cantidad, p->total);
-        }
+            printf("ingrese su nombre: ");
+            fflush(stdin);
+            fgets(p->cliente, sizeof(p->cliente), stdin);
+            printf("HOLA %s BIENVENIDO A -MC KITTEN-! TU ID DE PEDIDO ES #%d\n", p->cliente, p->id_pedido);
 
-        printf("\nagregar otro producto? (1 = si, 0 = no): ");
-        scanf("%d", &seguir);
-    }
+            int seguir = 1;
+            while (seguir) 
+            {
+                int tipo;
+                printf("que queres pedir? (0 = PANCHOS, 1 = HAMBURGUESAS): ");
+                scanf("%d", &tipo);
 
-historial= fopen (nombre_historial, "ab") ;
-if (historial== NULL)
-{
-    printf ("error") ;
-}
+                if (tipo == TIPO_PANCHO)
+                {
+                    printf("=== CATALOGO PANCHOS ===\n");
+                    recorrerArchivo_filtrado(pf, nombreArchivo, TIPO_PANCHO);
+                } 
+                else if (tipo == TIPO_HAMBURGUESA) 
+                {
+                    printf("=== CATALOGO HAMBURGUESAS ===\n");
+                    recorrerArchivo_filtrado(pf, nombreArchivo, TIPO_HAMBURGUESA);
+                } 
+                else 
+                {
+                    printf("opcion invalida\n");
+                    continue;
+                }
 
-    printf("===== RESUMEN PEDIDO #%d =====\n", p->id_pedido);
-    printf("Cliente: %s\n", p->cliente);
-    ItemPedido *aux = p->items;
-    if (!aux) printf("(sin items)\n");
-    while (aux) {
-        printf(" - %s x%d  ($%.2f c/u) -> $%.2f\n",
-               aux->producto->variante, aux->cantidad, aux->producto->precio, aux->subtotal);
-        aux = aux->siguiente;
-        fwrite (&aux, sizeof (aux), 1, historial) ;
+                    int opcionElegida = 0, cantidad = 0;
+                    printf("ingrese el numero de OPCION del producto: ");
+                    scanf("%d", &opcionElegida);
+                    printf("cantidad: ");
+                    scanf("%d", &cantidad);
+                    cant_total+= cantidad ;
 
-    }
-    printf("TOTAL: $%.2f\n", p->total);
-    dinero_facturado+= p->total ;
-    fclose (historial) ;
+                    Nodo *prod = buscarPorOpcion(catalogo, opcionElegida);
+                    if (!prod) 
+                    {
+                        printf("no existe la opcion %d\n", opcionElegida);
+                    } 
+                    else if (prod->tipo != tipo) 
+                    {
+                        printf("la opcion %d no es del tipo elegido\n", opcionElegida);
+                    } 
+                    else 
+                    {
+                        agregarItemAlPedido(p, prod, cantidad);
+                        printf("agregado: %s x%d ($%.2f c/u) -> subtotal: $%.2f  total: $%.2f\n",
+                            prod->variante, cantidad, prod->precio, prod->precio*cantidad, p->total);
+                    }
 
-    return p;
-liberar_espacio_item(aux) ;
+                        printf("\nagregar otro producto? (1 = si, 0 = no): ");
+                        scanf("%d", &seguir);
+                }
+
+                    historial= fopen (nombre_historial, "ab") ;
+                    if (historial== NULL)
+                    {
+                        printf ("error") ;
+                    }
+
+                        printf("===== RESUMEN PEDIDO #%d =====\n", p->id_pedido);
+                        printf("Cliente: %s\n", p->cliente);
+                        ItemPedido *aux = p->items;
+                        if (!aux) printf("(sin items)\n");
+                        while (aux) 
+                        {
+                            printf(" - %s x%d  ($%.2f c/u) -> $%.2f\n",
+                            aux->producto->variante, aux->cantidad, aux->producto->precio, aux->subtotal);
+                            aux = aux->siguiente;
+                            fwrite (&aux, sizeof (aux), 1, historial) ;
+
+                        }
+                            printf("TOTAL: $%.2f\n", p->total);
+                            dinero_facturado+= p->total ;
+                            fclose (historial) ;
+
+return p;
+                            liberar_espacio_item(aux) ;
 
 }
 void registroVentas ()
@@ -475,71 +521,77 @@ void registroVentas ()
         printf ("error") ;
         return ;
     }
-    fprintf (archivo, " CANTIDAD DE VENTAS:%d \n TOTAL DINERO FACTURADO: %f \n", cant_total, dinero_facturado) ;
-    fclose (archivo) ;
+        fprintf (archivo, " CANTIDAD DE VENTAS:%d \n TOTAL DINERO FACTURADO: %f \n", cant_total, dinero_facturado) ;
+        fclose (archivo) ;
 }
 void entregarPedido(Pedido **primero, Pedido **ultimo)
 {
-    if (*primero == NULL) {
+    if (*primero == NULL) 
+    {
         printf("no tenemos pedidos \n");
         return;
     }
 
-    Pedido *aEntregar = *primero;
-    *primero = (*primero)->siguiente;
+        Pedido *aEntregar = *primero;
+        *primero = (*primero)->siguiente;
 
-    if (*primero == NULL) {
-        *ultimo = NULL;
-    }
+        if (*primero == NULL) 
+        {
+            *ultimo = NULL;
+        }
 
-    printf("ENTREGANDO PEDIDO #%d\n", aEntregar->id_pedido);
-    printf("Cliente: %s\n", aEntregar->cliente);
-    printf("Total: $%.2f\n", aEntregar->total);
+            printf("ENTREGANDO PEDIDO #%d\n", aEntregar->id_pedido);
+            printf("Cliente: %s\n", aEntregar->cliente);
+            printf("Total: $%.2f\n", aEntregar->total);
 
 
-    ItemPedido *aux = aEntregar->items;
-    while (aux) {
-        printf(" - %s x%d  ($%.2f c/u)\n",
-               aux->producto->variante, aux->cantidad, aux->producto->precio);
-        aux = aux->siguiente;
-    }
+            ItemPedido *aux = aEntregar->items;
+            while (aux) 
+            {
+                printf(" - %s x%d  ($%.2f c/u)\n",
+                aux->producto->variante, aux->cantidad, aux->producto->precio);
+                aux = aux->siguiente;
+            }
 
-    printf("Pedido entregado con exito\n");
-liberar_espacio_pedido(aEntregar) ;
+                printf("Pedido entregado con exito\n");
+                liberar_espacio_pedido(aEntregar) ;
 }
 
 void mostrarColaPedidos(Pedido *primero)
 {
-    if (primero == NULL) {
+    if (primero == NULL) 
+    {
         printf("no hay pedidos en la cola\n");
         return;
     }
 
-    printf("PEDIDOS EN ESPERA:\n");
-    int i = 1;
+        printf("PEDIDOS EN ESPERA:\n");
+        int i = 1;
 
-    while (primero != NULL) {
-        printf("Pedido %d:\n", i);
-        printf("ID pedido: #%d\n", primero->id_pedido);
-        printf("Cliente: %s\n", primero->cliente);
-        printf("Total a pagar: $%.2f\n", primero->total);
+        while (primero != NULL) 
+        {
+            printf("Pedido %d:\n", i);
+            printf("ID pedido: #%d\n", primero->id_pedido);
+            printf("Cliente: %s\n", primero->cliente);
+            printf("Total a pagar: $%.2f\n", primero->total);
 
-        printf("Productos:\n");
-        ItemPedido *item = primero->items;
-        while (item != NULL) {
-            printf("  - %s x%d  $%.2f c/u \n",
-                   item->producto->variante,
-                   item->cantidad,
-                   item->producto->precio);
-            item = item->siguiente;
+            printf("Productos:\n");
+            ItemPedido *item = primero->items;
+            while (item != NULL) 
+            {
+                printf("  - %s x%d  $%.2f c/u \n",
+                item->producto->variante,
+                item->cantidad,
+                item->producto->precio);
+                item = item->siguiente;
+            }
+
+                primero = primero->siguiente;
+                i++;
+                liberar_espacio_item(item) ;
         }
 
-        primero = primero->siguiente;
-        i++;
-        liberar_espacio_item(item) ;
-    }
-
-    printf("\n");
+            printf("\n");
 }
 void verHistorialPedidos (FILE*historial, char*nombre_historial)
 {
@@ -549,19 +601,19 @@ void verHistorialPedidos (FILE*historial, char*nombre_historial)
         printf ("error") ;
         return ;
     }
-    RegistroProducto r ;
-    printf (" --- HISTORIAL DE PEDIDOS --- \n") ;
-    while (fread (&r, sizeof (RegistroProducto), 1, historial)== 1)
-    {
-        printf ("--- PRODUCTO --- \n") ;
-        if (r.tipo== TIPO_HAMBURGUESA)
-            printf ("HAMBURGUESA \n") ;
-        else
-            printf ("PANCHO \n") ;
-        printf ("VARIANTE: %s \n DESCRIPCION: %s \n PRECIO: %.2f \n", r.variante, r.descripcion, r.precio) ;
+        RegistroProducto r ;
+        printf (" --- HISTORIAL DE PEDIDOS --- \n") ;
+        while (fread (&r, sizeof (RegistroProducto), 1, historial)== 1)
+        {
+            printf ("--- PRODUCTO --- \n") ;
+            if (r.tipo== TIPO_HAMBURGUESA)
+                printf ("HAMBURGUESA \n") ;
+            else
+                printf ("PANCHO \n") ;
+            printf ("VARIANTE: %s \n DESCRIPCION: %s \n PRECIO: %.2f \n", r.variante, r.descripcion, r.precio) ;
 
-    }
-    fclose (historial) ;
+        }
+            fclose (historial) ;
 }
 void liberar_espacio (Nodo*p)
 {
