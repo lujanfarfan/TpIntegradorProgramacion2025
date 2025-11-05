@@ -5,7 +5,6 @@
 #include <stdbool.h>
 
 /*
- 1) leer el bin de historial y pasarlo a un print para que se muestre en pantalla
  2) meter en la struct algo para manejar el estado entregado
  3) cuando se entrega un pedido se actualice el estado
  4) que con el fseek se busque el que se elimino y se escriba lo demas en otro archivo que sea los que no se entregaron
@@ -88,13 +87,17 @@ void recorrerArchivo_filtrado(FILE **pf, char *nombreArchivo, int tipoFiltrar);
 Nodo* buscarPorOpcion(Nodo *cabeza, int opcion);
 void agregarItemAlPedido(Pedido *pedido, Nodo *prod, int cantidad);
 void encolarPedido(Pedido **primero, Pedido **ultimo, Pedido *nuevo);
-Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo);
+Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE*historial, char*nombre_historial);
 void entregarPedido(Pedido **primero, Pedido **ultimo);
 void mostrarColaPedidos(Pedido *primero);
 void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo);
-void registroVentas () ; 
-int cant_total=0 ; 
-float dinero_facturado=0 ; 
+void registroVentas () ;
+void verHistorialPedidos (FILE*historial, char*nombre_historial) ;
+void liberar_espacio (Nodo*p) ;
+void liberar_espacio_item (ItemPedido*p) ;
+void liberar_espacio_pedido (Pedido*p) ;
+int cant_total=0 ;
+float dinero_facturado=0 ;
 
 int main(void)
 {
@@ -111,13 +114,15 @@ int main(void)
 
 
 
-
+liberar_espacio(catalogo) ;
     return 0;
 }
 
 void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo) {
     printf("Bienvenido a MC-KITTEN \n");
     int opcion;
+FILE*historial= NULL ;
+char*nombre_historial= "historial.bin" ;
     do {
         printf("BIENVENIDO AL MENU \n");
         printf("elija su opcion: \n");
@@ -137,7 +142,7 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo) {
             printf("tipo de PANCHOS \n");
             recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_PANCHO);
 
-            Pedido *p = armarPedido(catalogo, &archivoCatalogo, nombreArchivoCatalogo);
+            Pedido *p = armarPedido(catalogo, &archivoCatalogo, nombreArchivoCatalogo, historial, nombre_historial);
             break;
 
             case 2:
@@ -145,6 +150,7 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo) {
             mostrarColaPedidos(p);
             break;
             case 3:
+                verHistorialPedidos (historial, nombre_historial) ;
                 registroVentas();
             break;
             case 4:
@@ -353,6 +359,7 @@ void agregarItemAlPedido(Pedido *pedido, Nodo *prod, int cantidad)
     }
 
     pedido->total += nuevo->subtotal;
+liberar_espacio_item(nuevo) ;
 }
 
 void encolarPedido(Pedido **primero, Pedido **ultimo, Pedido *nuevo)
@@ -369,7 +376,7 @@ void encolarPedido(Pedido **primero, Pedido **ultimo, Pedido *nuevo)
 }
 
 
-Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo)
+Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE*historial, char*nombre_historial )
 {
     if (!catalogo) {
         printf("no hay catalogo en memoria\n");
@@ -416,7 +423,7 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo)
         scanf("%d", &opcionElegida);
         printf("cantidad: ");
         scanf("%d", &cantidad);
-        cant_total+= cantidad ; 
+        cant_total+= cantidad ;
 
         Nodo *prod = buscarPorOpcion(catalogo, opcionElegida);
         if (!prod) {
@@ -432,13 +439,12 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo)
         printf("\nagregar otro producto? (1 = si, 0 = no): ");
         scanf("%d", &seguir);
     }
-FILE*historial= NULL ;
-char*nombre_historial= "historial.bin" ; 
-historial= fopen (nombre_historial, "ab") ; 
+
+historial= fopen (nombre_historial, "ab") ;
 if (historial== NULL)
 {
     printf ("error") ;
-} 
+}
 
     printf("===== RESUMEN PEDIDO #%d =====\n", p->id_pedido);
     printf("Cliente: %s\n", p->cliente);
@@ -448,27 +454,29 @@ if (historial== NULL)
         printf(" - %s x%d  ($%.2f c/u) -> $%.2f\n",
                aux->producto->variante, aux->cantidad, aux->producto->precio, aux->subtotal);
         aux = aux->siguiente;
-        fwrite (&aux, sizeof (aux), 1, historial) ; 
+        fwrite (&aux, sizeof (aux), 1, historial) ;
 
     }
     printf("TOTAL: $%.2f\n", p->total);
-    dinero_facturado+= p->total ; 
-    fclose (historial) ; 
+    dinero_facturado+= p->total ;
+    fclose (historial) ;
 
     return p;
+liberar_espacio_item(aux) ;
+
 }
-void registroVentas () 
+void registroVentas ()
 {
-    FILE*archivo= NULL ; 
-    char*nombre_archivo= "log.txt" ; 
-    archivo= fopen (nombre_archivo, "w") ; 
+    FILE*archivo= NULL ;
+    char*nombre_archivo= "log.txt" ;
+    archivo= fopen (nombre_archivo, "w") ;
     if (archivo== NULL)
     {
-        printf ("error") ; 
-        return ; 
+        printf ("error") ;
+        return ;
     }
-    fprintf (archivo, " CANTIDAD DE VENTAS:%d \n TOTAL DINERO FACTURADO: %f \n", cant_total, dinero_facturado) ; 
-    fclose (archivo) ; 
+    fprintf (archivo, " CANTIDAD DE VENTAS:%d \n TOTAL DINERO FACTURADO: %f \n", cant_total, dinero_facturado) ;
+    fclose (archivo) ;
 }
 void entregarPedido(Pedido **primero, Pedido **ultimo)
 {
@@ -497,8 +505,7 @@ void entregarPedido(Pedido **primero, Pedido **ultimo)
     }
 
     printf("Pedido entregado con exito\n");
-
-    free(aEntregar);
+liberar_espacio_pedido(aEntregar) ;
 }
 
 void mostrarColaPedidos(Pedido *primero)
@@ -529,7 +536,42 @@ void mostrarColaPedidos(Pedido *primero)
 
         primero = primero->siguiente;
         i++;
+        liberar_espacio_item(item) ;
     }
 
     printf("\n");
+}
+void verHistorialPedidos (FILE*historial, char*nombre_historial)
+{
+    historial= fopen (nombre_historial, "rb") ;
+    if (historial== NULL)
+    {
+        printf ("error") ;
+        return ;
+    }
+    RegistroProducto r ;
+    printf (" --- HISTORIAL DE PEDIDOS --- \n") ;
+    while (fread (&r, sizeof (RegistroProducto), 1, historial)== 1)
+    {
+        printf ("--- PRODUCTO --- \n") ;
+        if (r.tipo== TIPO_HAMBURGUESA)
+            printf ("HAMBURGUESA \n") ;
+        else
+            printf ("PANCHO \n") ;
+        printf ("VARIANTE: %s \n DESCRIPCION: %s \n PRECIO: %.2f \n", r.variante, r.descripcion, r.precio) ;
+
+    }
+    fclose (historial) ;
+}
+void liberar_espacio (Nodo*p)
+{
+    free (p) ;
+}
+void liberar_espacio_item (ItemPedido*p)
+{
+    free (p) ;
+}
+void liberar_espacio_pedido (Pedido*p)
+{
+    free (p) ;
 }
