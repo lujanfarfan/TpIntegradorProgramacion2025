@@ -4,6 +4,19 @@
 #include <string.h>
 #include <stdbool.h>
 
+/*
+ 1) leer el bin de historial y pasarlo a un print para que se muestre en pantalla
+ 2) meter en la struct algo para manejar el estado entregado
+ 3) cuando se entrega un pedido se actualice el estado
+ 4) que con el fseek se busque el que se elimino y se escriba lo demas en otro archivo que sea los que no se entregaron
+ 5) lo que si se elimino se agrega a un archivo de entregados
+ 6) comentar codigo
+ 7) identar
+ 8) funcion salir
+ 9) funcion limpiar memoria
+ 10) diagramas
+ */
+
 #define TIPO_PANCHO 0
 #define TIPO_HAMBURGUESA 1
 
@@ -78,7 +91,7 @@ void encolarPedido(Pedido **primero, Pedido **ultimo, Pedido *nuevo);
 Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo);
 void entregarPedido(Pedido **primero, Pedido **ultimo);
 void mostrarColaPedidos(Pedido *primero);
-void menu();
+void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo);
 void registroVentas () ; 
 int cant_total=0 ; 
 float dinero_facturado=0 ; 
@@ -89,30 +102,63 @@ int main(void)
     FILE *archivoCatalogo = NULL;
     char *nombreArchivoCatalogo = "catalogo.bin";
     Nodo *catalogo = NULL;
+    menu(archivoCatalogo, nombreArchivoCatalogo, catalogo);
 
 
-    cargarCatalogoInicial(&catalogo, &archivoCatalogo, nombreArchivoCatalogo);
 
-    printf("tipo de HAMBURGUESAS \n");
-    recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_HAMBURGUESA);
 
-    printf("tipo de PANCHOS \n");
-    recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_PANCHO);
 
-    Pedido *p = armarPedido(catalogo, &archivoCatalogo, nombreArchivoCatalogo);
-    int entregar=0;
-    printf("queres entregar un pedido? \n");
-    scanf("%d",&entregar);
-    if(entregar==1) {
-        entregarPedido(&p, &catalogo);
-        mostrarColaPedidos(p);
-    }
+
 
 
 
     return 0;
 }
 
+void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo) {
+    printf("Bienvenido a MC-KITTEN \n");
+    int opcion;
+    do {
+        printf("BIENVENIDO AL MENU \n");
+        printf("elija su opcion: \n");
+        printf("1) crear pedido \n");
+        printf("2) entregar pedido \n");
+        printf("3)  ver estadisticas \n");
+        printf("4)  salir \n");
+
+        scanf("%d", &opcion);
+        switch (opcion) {
+            case 1:
+                cargarCatalogoInicial(&catalogo, &archivoCatalogo, nombreArchivoCatalogo);
+
+            printf("tipo de HAMBURGUESAS \n");
+            recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_HAMBURGUESA);
+
+            printf("tipo de PANCHOS \n");
+            recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_PANCHO);
+
+            Pedido *p = armarPedido(catalogo, &archivoCatalogo, nombreArchivoCatalogo);
+            break;
+
+            case 2:
+                entregarPedido(&p, &catalogo);
+            mostrarColaPedidos(p);
+            break;
+            case 3:
+                registroVentas();
+            break;
+            case 4:
+                printf("salir \n");
+            break;
+            default:
+                printf("Opcion no valida\n");
+            break;
+
+
+        }
+
+    }while(opcion!=4);
+}
 
 
 
@@ -391,8 +437,7 @@ char*nombre_historial= "historial.bin" ;
 historial= fopen (nombre_historial, "ab") ; 
 if (historial== NULL)
 {
-    printf ("error") ; 
-    return ; 
+    printf ("error") ;
 } 
 
     printf("===== RESUMEN PEDIDO #%d =====\n", p->id_pedido);
