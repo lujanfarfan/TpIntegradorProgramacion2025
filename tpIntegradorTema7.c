@@ -77,6 +77,7 @@ void agregarItemAlPedido(Pedido *pedido, Nodo *prod, int cantidad);
 void encolarPedido(Pedido **primero, Pedido **ultimo, Pedido *nuevo);
 Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo);
 void entregarPedido(Pedido **primero, Pedido **ultimo);
+void mostrarColaPedidos(Pedido *primero);
 void menu();
 
 
@@ -84,7 +85,7 @@ int main(void)
 {
     srand(time(NULL));
     FILE *archivoCatalogo = NULL;
-    char nombreArchivoCatalogo[] = "catalogo.bin";
+    char *nombreArchivoCatalogo = "catalogo.bin";
     Nodo *catalogo = NULL;
 
 
@@ -97,18 +98,19 @@ int main(void)
     recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_PANCHO);
 
     Pedido *p = armarPedido(catalogo, &archivoCatalogo, nombreArchivoCatalogo);
-
-
-
+    int entregar=0;
+    printf("queres entregar un pedido? \n");
+    scanf("%d",&entregar);
+    if(entregar==1) {
+        entregarPedido(&p, &catalogo);
+        mostrarColaPedidos(p);
+    }
 
 
 
     return 0;
 }
 
-void menu() {
-    printf("`");
-}
 
 
 
@@ -394,4 +396,67 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo)
     printf("TOTAL: $%.2f\n", p->total);
 
     return p;
+}
+void entregarPedido(Pedido **primero, Pedido **ultimo)
+{
+    if (*primero == NULL) {
+        printf("no tenemos pedidos \n");
+        return;
+    }
+
+    Pedido *aEntregar = *primero;
+    *primero = (*primero)->siguiente;
+
+    if (*primero == NULL) {
+        *ultimo = NULL;
+    }
+
+    printf("ENTREGANDO PEDIDO #%d\n", aEntregar->id_pedido);
+    printf("Cliente: %s\n", aEntregar->cliente);
+    printf("Total: $%.2f\n", aEntregar->total);
+
+
+    ItemPedido *aux = aEntregar->items;
+    while (aux) {
+        printf(" - %s x%d  ($%.2f c/u)\n",
+               aux->producto->variante, aux->cantidad, aux->producto->precio);
+        aux = aux->siguiente;
+    }
+
+    printf("Pedido entregado con exito\n");
+
+    free(aEntregar);
+}
+
+void mostrarColaPedidos(Pedido *primero)
+{
+    if (primero == NULL) {
+        printf("no hay pedidos en la cola\n");
+        return;
+    }
+
+    printf("PEDIDOS EN ESPERA:\n");
+    int i = 1;
+
+    while (primero != NULL) {
+        printf("Pedido %d:\n", i);
+        printf("ID pedido: #%d\n", primero->id_pedido);
+        printf("Cliente: %s\n", primero->cliente);
+        printf("Total a pagar: $%.2f\n", primero->total);
+
+        printf("Productos:\n");
+        ItemPedido *item = primero->items;
+        while (item != NULL) {
+            printf("  - %s x%d  $%.2f c/u \n",
+                   item->producto->variante,
+                   item->cantidad,
+                   item->producto->precio);
+            item = item->siguiente;
+        }
+
+        primero = primero->siguiente;
+        i++;
+    }
+
+    printf("\n");
 }
