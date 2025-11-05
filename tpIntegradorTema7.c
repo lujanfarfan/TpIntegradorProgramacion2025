@@ -78,7 +78,9 @@ void encolarPedido(Pedido **primero, Pedido **ultimo, Pedido *nuevo);
 Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo);
 void entregarPedido(Pedido **primero, Pedido **ultimo);
 void menu();
-
+void registroVentas () ; 
+int cant_total=0 ; 
+float dinero_facturado=0 ; 
 
 int main(void)
 {
@@ -366,6 +368,7 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo)
         scanf("%d", &opcionElegida);
         printf("cantidad: ");
         scanf("%d", &cantidad);
+        cant_total+= cantidad ; 
 
         Nodo *prod = buscarPorOpcion(catalogo, opcionElegida);
         if (!prod) {
@@ -381,6 +384,14 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo)
         printf("\nagregar otro producto? (1 = si, 0 = no): ");
         scanf("%d", &seguir);
     }
+FILE*historial= NULL ;
+char*nombre_historial= "historial.bin" ; 
+historial= fopen (nombre_historial, "ab") ; 
+if (historial== NULL)
+{
+    printf ("error") ; 
+    return ; 
+} 
 
     printf("===== RESUMEN PEDIDO #%d =====\n", p->id_pedido);
     printf("Cliente: %s\n", p->cliente);
@@ -390,8 +401,25 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo)
         printf(" - %s x%d  ($%.2f c/u) -> $%.2f\n",
                aux->producto->variante, aux->cantidad, aux->producto->precio, aux->subtotal);
         aux = aux->siguiente;
+        fwrite (&aux, sizeof (aux), 1, historial) ; 
+
     }
     printf("TOTAL: $%.2f\n", p->total);
+    dinero_facturado+= p->total ; 
+    fclose (historial) ; 
 
     return p;
+}
+void registroVentas () 
+{
+    FILE*archivo= NULL ; 
+    char*nombre_archivo= "log.txt" ; 
+    archivo= fopen (nombre_archivo, "w") ; 
+    if (archivo== NULL)
+    {
+        printf ("error") ; 
+        return ; 
+    }
+    fprintf (archivo, " CANTIDAD DE VENTAS:%d \n TOTAL DINERO FACTURADO: %f \n", cant_total, dinero_facturado) ; 
+    fclose (archivo) ; 
 }
