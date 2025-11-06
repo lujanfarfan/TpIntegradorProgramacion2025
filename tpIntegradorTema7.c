@@ -153,6 +153,7 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo)
             case 2:
                     entregarPedido(&p, &catalogo);
                     mostrarColaPedidos(p);
+                    actualizarArchivoPedidos (historial, nombre_historial) ; 
                     break;
             case 3:
                     verHistorialPedidos (historial, nombre_historial) ;
