@@ -5,13 +5,9 @@
 #include <stdbool.h>
 
 /*
- 1) meter en la struct algo para manejar el estado entregado
- 2) cuando se entrega un pedido se actualice el estado
- 3) que con el fseek se busque el que se elimino y se escriba lo demas en otro archivo que sea los que no se entregaron
- 4) lo que si se elimino se agrega a un archivo de entregados
- 5) comentar codigo
- 6) identar (por ahora hecho)
- 7) diagramas
+ 1) comentar codigo
+ 2) identar (por ahora hecho)
+ 3) diagramas
  */
 
 #define TIPO_PANCHO 0
