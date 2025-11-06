@@ -73,6 +73,7 @@ typedef struct Pedido {
     float total;
     bool metodo_pago;
     struct Pedido *siguiente;
+    bool entregado; 
 } Pedido;
 
 
@@ -91,6 +92,7 @@ void mostrarColaPedidos(Pedido *primero);
 void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo);
 void registroVentas () ;
 void verHistorialPedidos (FILE*historial, char*nombre_historial) ;
+void actualizarArchivoPedidos (FILE*historial, char*nombre_historial) ;
 void liberar_espacio (Nodo*p) ;
 void liberar_espacio_item (ItemPedido*p) ;
 void liberar_espacio_pedido (Pedido*p) ;
@@ -545,7 +547,7 @@ void entregarPedido(Pedido **primero, Pedido **ultimo)
         {
             *ultimo = NULL;
         }
-
+            aEntregar->entregado= true ; 
             printf("ENTREGANDO PEDIDO #%d\n", aEntregar->id_pedido);
             printf("Cliente: %s\n", aEntregar->cliente);
             printf("Total: $%.2f\n", aEntregar->total);
@@ -661,4 +663,45 @@ void salir (Nodo*catalogo, Pedido*primero)
         system ("pause") ;
         printf ("Gracias por usar nuestro sistema de pedidos \n") ;
     return ; 
+}
+void actualizarArchivoPedidos (FILE*historial, char*nombre_historial)
+{
+    FILE*temporal= NULL ;
+    historial= fopen (nombre_historial, "rb") ;
+    FILE*entregados= NULL ; 
+    entregados= fopen ("entregados.bin", "ab") ; 
+    if (entregados==NULL)
+    {
+        printf ("error") ;
+        return ;
+    }
+        if (historial== NULL)
+        {
+            printf ("error") ;
+            return ;
+        }
+            temporal= fopen ("archivo_temporal.bin", "wb") ;
+            if (temporal== NULL)
+            {
+                printf ("error") ;
+                fclose (historial) ;
+                return ;
+            }
+                Pedido r ;
+                while (fread (&r, sizeof (RegistroProducto), 1, historial)== 1)
+                {
+                    if (!r.entregado) 
+                    {
+                        fwrite (&r, sizeof (RegistroProducto), 1, temporal) ;
+                    }
+                    else if (r.entregado)
+                    {
+                        fwrite (&r, sizeof (RegistroProducto), 1, entregados) ;
+                    }
+                }
+                    fclose (historial) ;
+                    fclose (temporal) ;
+                    fclose (entregados) ;
+                    remove (nombre_historial) ;
+                    rename ("temp.bin", nombre_historial) ;
 }
