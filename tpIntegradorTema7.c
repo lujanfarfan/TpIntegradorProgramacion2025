@@ -9,11 +9,9 @@
  2) cuando se entrega un pedido se actualice el estado
  3) que con el fseek se busque el que se elimino y se escriba lo demas en otro archivo que sea los que no se entregaron
  4) lo que si se elimino se agrega a un archivo de entregados
-
  5) comentar codigo
  6) identar (por ahora hecho)
- 7) funcion salir
- 8) diagramas
+ 7) diagramas
  */
 
 #define TIPO_PANCHO 0
@@ -96,6 +94,7 @@ void verHistorialPedidos (FILE*historial, char*nombre_historial) ;
 void liberar_espacio (Nodo*p) ;
 void liberar_espacio_item (ItemPedido*p) ;
 void liberar_espacio_pedido (Pedido*p) ;
+void salir (Nodo*catalogo, Pedido*primero) ; 
 int cant_total=0 ;
 float dinero_facturado=0 ;
 
@@ -114,7 +113,6 @@ int main(void)
 
 
 
-    liberar_espacio(catalogo) ;
     return 0;
 }
 
@@ -159,7 +157,7 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo)
                     registroVentas();
                     break;
             case 4:
-                    printf("salir \n");
+                    salir (catalogo, p) ; 
                     break;
             default:
                     printf("Opcion no valida\n");
@@ -388,7 +386,7 @@ void agregarItemAlPedido(Pedido *pedido, Nodo *prod, int cantidad)
             }
 
                 pedido->total += nuevo->subtotal;
-                liberar_espacio_item(nuevo) ;
+                
 }
 
 void encolarPedido(Pedido **primero, Pedido **ultimo, Pedido *nuevo)
@@ -499,8 +497,16 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE*histori
                         {
                             printf(" - %s x%d  ($%.2f c/u) -> $%.2f\n",
                             aux->producto->variante, aux->cantidad, aux->producto->precio, aux->subtotal);
+                            RegistroProducto r ;
+                            r.tipo= aux->producto->tipo ;
+                            strcpy (r.variante, aux->producto->variante) ;
+                            strcpy (r.descripcion, aux->producto->descripcion) ;
+                            r.precio= aux->producto->precio ;
+                            r.ingredientes= aux->producto->ingredientes ;
+                            r.condimentos= aux->producto->condimentos ;
+                            r.opcion= aux->producto->opcion ;
+                            fwrite (&r, sizeof (RegistroProducto), 1, historial) ;
                             aux = aux->siguiente;
-                            fwrite (&aux, sizeof (aux), 1, historial) ;
 
                         }
                             printf("TOTAL: $%.2f\n", p->total);
@@ -508,7 +514,7 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE*histori
                             fclose (historial) ;
 
 return p;
-                            liberar_espacio_item(aux) ;
+                            
 
 }
 void registroVentas ()
@@ -585,13 +591,14 @@ void mostrarColaPedidos(Pedido *primero)
                 item->producto->precio);
                 item = item->siguiente;
             }
-
+                
                 primero = primero->siguiente;
                 i++;
-                liberar_espacio_item(item) ;
         }
 
             printf("\n");
+            
+
 }
 void verHistorialPedidos (FILE*historial, char*nombre_historial)
 {
@@ -617,13 +624,41 @@ void verHistorialPedidos (FILE*historial, char*nombre_historial)
 }
 void liberar_espacio (Nodo*p)
 {
-    free (p) ;
+    Nodo*aux ; 
+    while (p)
+    {
+        aux= p ; 
+        p= p->siguiente ;
+        free (aux) ;
+    }    
 }
 void liberar_espacio_item (ItemPedido*p)
 {
-    free (p) ;
+  ItemPedido*aux ; 
+    while (p)
+    {
+        aux= p ; 
+        p= p->siguiente ;
+        free (aux) ;
+    }    
 }
 void liberar_espacio_pedido (Pedido*p)
 {
+  if (!p) return ;
+    liberar_espacio_item (p->items) ;
     free (p) ;
+}
+void salir (Nodo*catalogo, Pedido*primero) 
+{
+    printf("Liberando memoria y cerrando\n");
+    liberar_espacio(catalogo) ;
+    while (primero) 
+    {
+        Pedido *p = primero;
+        primero = primero->siguiente;
+        liberar_espacio_pedido(p);
+    }
+        system ("pause") ;
+        printf ("Gracias por usar nuestro sistema de pedidos \n") ;
+    return ; 
 }
