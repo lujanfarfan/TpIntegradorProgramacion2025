@@ -137,12 +137,12 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo)
 
             {
                 Pedido *p = armarPedido(catalogo, &archivoCatalogo, nombreArchivoCatalogo, historial, nombre_historial);
-                /* si querés cola en RAM, encolalo acá; no es necesaria para ver/entregar desde archivo */
+
             }
             break;
 
             case 2:
-                /* entregar del más viejo (archivo) y luego mostrar cola (pendientes en archivo) */
+              
                     entregarPedido();
             mostrarColaPedidos();
 
