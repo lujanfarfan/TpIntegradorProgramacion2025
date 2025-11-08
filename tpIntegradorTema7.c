@@ -142,7 +142,7 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo)
             break;
 
             case 2:
-              
+
                     entregarPedido();
             mostrarColaPedidos();
 
@@ -150,7 +150,6 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo)
 
             case 3:
                 verHistorialPedidos(historial, nombre_historial);
-            registroVentas();
             break;
             case 4:
                 mostrarColaPedidos();
@@ -586,7 +585,6 @@ void entregarPedido()
         }
 
         if (!entregado) {
-
             bool nuevo = true;
             fseek(f, pos_entregado, SEEK_SET);
             fwrite(&nuevo, sizeof(bool), 1, f);
