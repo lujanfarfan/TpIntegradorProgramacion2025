@@ -128,18 +128,12 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo)
         {
             case 1:
                 cargarCatalogoInicial(&catalogo, &archivoCatalogo, nombreArchivoCatalogo);
-
-            printf("tipo de HAMBURGUESAS \n");
-            recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_HAMBURGUESA);
-
-            printf("tipo de PANCHOS \n");
-            recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_PANCHO);
-
-            {
+                printf("Tipo de HAMBURGUESAS\n");
+                recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_HAMBURGUESA);
+                printf("Tipo de PANCHOS\n");
+                recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_PANCHO);
                 Pedido *p = armarPedido(catalogo, &archivoCatalogo, nombreArchivoCatalogo, historial, nombre_historial);
-
-            }
-            break;
+                break;
 
             case 2:
 
