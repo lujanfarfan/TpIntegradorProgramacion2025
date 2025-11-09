@@ -9,10 +9,15 @@
  2) identar (por ahora hecho)
  3) diagramaa
  */
-
+// los definimos como cuando lo haciamos con la cant de registros permitidos
+// para poder modificar fcilmente el sitema sin tocar el codigo
+// definimos los tipos de productos disponibles
+// si el sistema se amplía (para agregar bebidas o postreso cookies)
+// solo habría que agregar los aca
 #define TIPO_PANCHO 0
 #define TIPO_HAMBURGUESA 1
 
+//represnta los ingredientes que itene cada producto si esta en true lo tiene si esta en false no
 typedef struct {
     bool chedar;
     bool provoleta;
@@ -22,6 +27,7 @@ typedef struct {
     bool quesoDambo;
 } ingredientes;
 
+//representa los condimentos quer tiene cada producto del catalogo si esta en true lo tiene si esta en false no
 typedef struct {
     bool mostaza;
     bool barbacoa;
@@ -32,6 +38,8 @@ typedef struct {
     bool aderezoEspecial;
 } condimentos;
 
+// representa un nodo de la lista enlazada que conforma el catlogo de productos, cada nodo es un producto
+// fontiene la info completa de un producto y un puntero al siguiente nodo
 typedef struct Nodo {
     int tipo;
     char variante[60];
@@ -43,7 +51,8 @@ typedef struct Nodo {
     struct Nodo *siguiente;
 } Nodo;
 
-
+// struct auxiliar usada para guardar los productos en el archivo bin
+// contiene la misma información que Nodo pero sin el puntero siguiente
 typedef struct {
     int tipo;
     char variante[60];
@@ -54,52 +63,103 @@ typedef struct {
     int opcion;
 } RegistroProducto;
 
+//representa cada producto qu eel client pido dentro de un pedido
+//sirve para guardar todos los procutos que cliente selecciono dentor de la struct para dsp copiarlos en el archivo
+// cada item guarda el producto, la cantidad pedida y su subtotal
 typedef struct ItemPedido {
-    struct Nodo *producto;
+    struct Nodo *producto;  // puntero al producto seleccionado del catslogo
     int cantidad;
-    float subtotal;
-    struct ItemPedido *siguiente;
+    float subtotal;  // total parcial (precio * cantidad)
+    struct ItemPedido *siguiente; // puntero al sigiente item dentro del pedido
 } ItemPedido;
 
-
+//tepresenta un pedido completo dentro del sistema
+//contiene los datos del cliente, los items seleccionados y el estado del pedido
 typedef struct Pedido {
     int id_pedido;
     char cliente[40];
-    ItemPedido *items;
+    ItemPedido *items;   //puntero a la lista de productos dentro del pedido
     float total;
     bool metodo_pago;
-    struct Pedido *siguiente;
-    bool entregado;
+    struct Pedido *siguiente;   //puntero al siguiente pedido en la lista
+    bool entregado;  // estado del pedido (true: entregado, false: pendiente)
 } Pedido;
 
-
+// crea y devuelve un nodo de catalogo Parametros: datos del producto Devuelve: puntero al Nodo creado
 Nodo *crearNodo(int tipo, char *variante, char *descripcion, float precio, ingredientes ing, condimentos cond, int opcion);
+
+// inserta un producto al final de la lista del catslogo Parametros: **cabeza porque puede cambiarla direccion de inciio de la lista y datos del producto
+//  enlaza el nuevo nodo en la lista y no devuelve valor
 void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float precio, ingredientes ing, condimentos cond, int opcion);
+
+// carga el catálogo inicial Parametros: **cabeza lista en memoria, **catalogo (FILE** para abrir/crear), nombre del archivo
+// no devuelve valor
 void cargarCatalogoInicial(Nodo **cabeza, FILE **catalogo, char *nombreArchivo);
+
+// muestra por pantalla los productos del archiv Parametros: **pf (FILE** para abrir/leer), nombre del archivo, tipoFiltrar
+// no devuelve valor
 void recorrerArchivo_filtrado(FILE **pf, char *nombreArchivo, int tipoFiltrar);
+
+// busca un producto por numero de opcion dentro del catalogo en memoria Parametros: cabeza de la lista y la opción buscada.
+// devuelve: puntero al Nodo encontrado o NULL si no existr
 Nodo* buscarPorOpcion(Nodo *cabeza, int opcion);
+
+// agrega un ítem a un pedido existente y actualiza el total Parametros: pedido en construccion, producto elegido (Nodo), cantidad
+// no devuelve valor
 void agregarItemAlPedido(Pedido *pedido, Nodo *prod, int cantidad);
+
+// interacta con el usuario para crear un pedido completo y lo guarda en historial.bin
+// aarametros: catalogo en memoria y archivo historial
+// devuelve: puntero al Pedido creado
 Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE*historial, char*nombre_historial);
+
+// marca como entregado el primer pedido pendiente en historial.bin Parametros: ninguno
+// no devuelve valor
 void entregarPedido();
+
+// lista por pantalla la cola de pedidos pendientes leyendo historial.bin
 void mostrarColaPedidos();
+
+// menú principal que maneja dtodo Pametros: file, nombre del archivo del catálogo, lista del catálogo (Nodo*)
+// no devuelve valor
 void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo);
+
+// genera log.txt con cantidad total vendida y dinero facturado (usa variables globales)
 void registroVentas () ;
+
+// muestra el historial (entregados y pendientes) leyendo historial.bi
+// mo devuelve valor.
 void verHistorialPedidos (FILE*historial, char*nombre_historial);
+
+//libera toda la lista del catsdlogo en memoria Parametros: cabeza de la lista
 void liberar_espacio (Nodo*p) ;
+
+// libera la lista de ítems de un pedido Parametros: primer item
 void liberar_espacio_item (ItemPedido*p) ;
+
+// libera un pedido completo Parametros: puntero al pedido
 void liberar_espacio_pedido (Pedido*p) ;
+
+// cierra el programa liberando catalogo y la lista de pedidos encolados Parametros: catalogo y primer pedi
 void salir (Nodo*catalogo, Pedido*primero) ;
 
-
-int cant_total=0 ;
-float dinero_facturado=0 ;
+// variables globales usadas para registrar las estadisticas del siste
+//  cant total: cant total de pedidos realizados
+//  dinero_facturado: acumula el monto total generado por todas las ventas
+// se actualizan desde distintas funciones (armarPedido y registroVentas) y permiten generar reportes
+int cant_total = 0;
+float dinero_facturado = 0;
 
 int main(void)
 {
+    //funcion la usamos para generar numeros aleatorios para el id del cleinte
     srand(time(NULL));
+    // creamos e inciializamos el archivo del catalogo
     FILE *archivoCatalogo = NULL;
     char *nombreArchivoCatalogo = "catalogo.bin";
+    // puntero a la estructura Nodo para representar el catalogo
     Nodo *catalogo = NULL;
+    // llamamos a la funcion menu pasando el archivo y el catslogo
     menu(archivoCatalogo, nombreArchivoCatalogo, catalogo);
 
     return 0;
