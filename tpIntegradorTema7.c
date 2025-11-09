@@ -510,19 +510,22 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE* histor
             continue;
         }
 
-        cant_total += cantidad;
+
 
         Nodo *prod = buscarPorOpcion(catalogo, opcionElegida);
         if (!prod) {
             printf("no existe la opcion \n");
+            continue;
         }
         //verificamos que el tipo elegido coincida con lo que el usuario elije (panchos o burgers)
 
         else if (prod->tipo != tipo) {
             printf("la opcion no es del tipo elegido\n");
+            continue;
         } else {
             agregarItemAlPedido(p, prod, cantidad);
-            printf("agregado: %s x%d ($%.2f c/u) /n -- subtotal: $%.2f  total: $%.2f\n", prod->variante, cantidad, prod->precio, prod->precio * cantidad, p->total);
+            cant_total += cantidad;
+            printf("agregado: %s x%d ($%.2f c/u) \n -- subtotal: $%.2f  total: $%.2f\n", prod->variante, cantidad, prod->precio, prod->precio * cantidad, p->total);
         }
 
         printf("agregar otro producto? (1 = si, 0 = no): ");
@@ -575,7 +578,7 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE* histor
     }
 
 
-    printf("===== RESUMEN PEDIDO #%d =====\n", p->id_pedido);
+    printf("--- RESUMEN PEDIDO #%d ---\n", p->id_pedido);
     printf("Cliente: %s\n", p->cliente);
     //la usamos para recorrer la lista de productos que pido el cliente
     //recorre la struct cargada en memoria proque no queria reocrrer historial de vuelta, mas abajo lo hare!!!!!!!!!
