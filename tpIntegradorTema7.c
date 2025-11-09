@@ -7,7 +7,7 @@
 /*
  1) comentar codigo
  2) identar (por ahora hecho)
- 3) diagramas
+ 3) diagramaa
  */
 
 #define TIPO_PANCHO 0
@@ -310,7 +310,7 @@ void recorrerArchivo_filtrado(FILE **catalogo, char *nombreArchivo, int tipoFilt
                 else
                     printf("--- PANCHO OPCION %d ---\n", r.opcion);
 
-                printf("%s\n%s\n$%.2f\n\n", r.variante, r.descripcion, r.precio);
+                printf("%s\n %s\n $%.2f\n \n", r.variante, r.descripcion, r.precio);
             }
         }
 
@@ -420,7 +420,7 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE* histor
         printf("que queres pedir? (0 = PANCHOS, 1 = HAMBURGUESAS): ");
         ok = scanf("%d", &tipo);
         if (ok != 1 || (tipo != TIPO_PANCHO && tipo != TIPO_HAMBURGUESA)) {
-            printf("opcion invalida (ingresá 0 o 1)\n");
+            printf("opcion invalida (ingresa 0 o 1)\n");
             continue;
         }
 
@@ -438,11 +438,12 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE* histor
         printf("ingrese el numero de OPCION del producto: ");
         ok = scanf("%d", &opcionElegida);
         if (ok != 1) {
-            printf("opcion invalida (numero)\n");
+            printf("opcion invalida \n");
             continue;
         }
 
         printf("cantidad: ");
+        //comprobamos que sea valido el numero que ingreo
         ok = scanf("%d", &cantidad);
         if (ok != 1 || cantidad <= 0) {
             printf("cantidad invalida\n");
@@ -454,16 +455,21 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE* histor
         Nodo *prod = buscarPorOpcion(catalogo, opcionElegida);
         if (!prod) {
             printf("no existe la opcion \n");
-        } else if (prod->tipo != tipo) {
+        }
+        //verificamos que el tipo elegido coincida con lo que el usuario elije (panchos o burgers)
+
+        else if (prod->tipo != tipo) {
             printf("la opcion no es del tipo elegido\n");
         } else {
             agregarItemAlPedido(p, prod, cantidad);
-            printf("agregado: %s x%d ($%.2f c/u) -> subtotal: $%.2f  total: $%.2f\n", prod->variante, cantidad, prod->precio, prod->precio * cantidad, p->total);
+            printf("agregado: %s x%d ($%.2f c/u) /n -- subtotal: $%.2f  total: $%.2f\n", prod->variante, cantidad, prod->precio, prod->precio * cantidad, p->total);
         }
 
         printf("agregar otro producto? (1 = si, 0 = no): ");
-        ok = scanf("%d", &seguir);
-        if (ok != 1) seguir = 0;
+        scanf("%d", &seguir);
+        if (seguir != 1) {
+            seguir = 0;
+        }
     }
     historial = fopen(nombre_historial, "ab");
     if (!historial) {
@@ -475,7 +481,8 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE* histor
             cant_items++;
             auxc = auxc->siguiente;
         }
-
+        //ecribimos el pedido en el historial para que quede registro
+        //aca esta la info general
         fwrite(&p->id_pedido, sizeof(int),   1, historial);
         fwrite(p->cliente,   sizeof(p->cliente), 1, historial);
         fwrite(&p->total,    sizeof(float),  1, historial);
@@ -483,6 +490,8 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE* histor
         fwrite(&p->entregado,  sizeof(bool), 1, historial);
         fwrite(&cant_items,  sizeof(int),    1, historial);
 
+        //aca lo que hacemos es guardar los items del pedido del cleinte dentro del struct
+        //esto se repite hasta que no queden mas items
         ItemPedido *aux = p->items;
         while (aux) {
             RegistroProducto r;
@@ -494,6 +503,7 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE* histor
             r.condimentos  = aux->producto->condimentos;
             r.opcion  = aux->producto->opcion;
 
+            // linea top, guarda en el archviotodo lo que antes guardamos en la strcut r  para que alla aparezcan los items
             fwrite(&r,sizeof(RegistroProducto), 1, historial);
             fwrite(&aux->cantidad, sizeof(int), 1, historial);
             fwrite(&aux->subtotal, sizeof(float),1, historial);
@@ -507,6 +517,8 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE* histor
 
     printf("===== RESUMEN PEDIDO #%d =====\n", p->id_pedido);
     printf("Cliente: %s\n", p->cliente);
+    //la usamos para recorrer la lista de productos que pido el cliente
+    //recorre la struct cargada en memoria proque no queria reocrrer historial de vuelta, mas abajo lo hare!!!!!!!!!
     ItemPedido *auxp = p->items;
     if (!auxp) printf("sin items\n");
     while (auxp) {
@@ -517,6 +529,7 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE* histor
     printf("TOTAL: $%.2f\n", p->total);
     dinero_facturado += p->total;
 
+    //devuelve el puntero al pedido p que lo vamos ausar dsp para encolarlo
     return p;
 }
 
@@ -544,7 +557,10 @@ void entregarPedido()
         return;
     }
 
+    //HACEMOS EL WHILE INFINITO PORQUE NO SABEMOS CUENTOS REGISTROS TENEMOS, PEOR CUANDO YA NO LEAMOS MAS LO CORTAMOS CON BREAK
+
     while (1) {
+        //nos sirven para guardar temporalmente lo que leemos del archvio
         int id_pedido;
         char cliente[40];
         float total;
@@ -552,9 +568,11 @@ void entregarPedido()
         bool entregado;
         int cant_items;
 
+        //recordamos en que posicion del archvoo se gusrda entregado para dsp saber donde modificar
         long pos_entregado;
 
-//REVISAR
+//leemos una parte del pedido desde el archvio y la guardamos en las variables que hicmos arriba
+        //si alguna lectura nos falla es porque llego a su fin o hay error  y entocnes cortamos tod\o y salimos dle while
         if (fread(&id_pedido, sizeof(int), 1, f) != 1){
             break;
             }
@@ -564,13 +582,14 @@ void entregarPedido()
         if (fread(&total, sizeof(float), 1, f) != 1) {
             break;
         }
+        //al final no lo usamos para nada, dsp lo tenemos que borrar!!!!!!!!!!!!!!
         if (fread(&metodo_pago, sizeof(bool), 1, f) != 1) {
             break;
         }
 
-
+//nos devuelve donde estamos parados, antes de que empiece entregado
         pos_entregado = ftell(f);
-
+//leemos el valor de entregado y comprobamos que no falle (sin esto me falla )
         if (fread(&entregado, sizeof(bool), 1, f) != 1) {
             break;
         }
@@ -579,12 +598,17 @@ void entregarPedido()
         }
 
         if (!entregado) {
+            //var con valor true para dsp pasarsela alar chvio
             bool nuevo = true;
+            //movemos el cursor a donde esta el campo entregdo
             fseek(f, pos_entregado, SEEK_SET);
+            //sescribimos true en ese lugar
             fwrite(&nuevo, sizeof(bool), 1, f);
             fflush(f);
 
-
+//MUY IMPORTANTE con esto movemos el cursor hasta el inicio de los items del pedido actual
+//pos entregado apunta a el campo entregado asi que le sumaos el bool (entregado=fasle/true)
+// y tmb el tamano de cant items para poner el cursor donde arranca ek 1er item
             fseek(f, pos_entregado + sizeof(bool) + sizeof(int), SEEK_SET);
             printf("ENTREGANDO PEDIDO #%d\n", id_pedido);
             printf("Cliente: %s", cliente);
@@ -592,31 +616,35 @@ void entregarPedido()
             printf("Items (%d):\n", cant_items);
 
             int i;
+            //recorremos todos los items
             for (i = 0; i < cant_items; i++) {
                 RegistroProducto r;
                 int cantidad;
                 float subtotal;
-
+                //los imprimmos
                 fread(&r, sizeof(RegistroProducto), 1, f);
                 fread(&cantidad, sizeof(int), 1, f);
                 fread(&subtotal, sizeof(float), 1, f);
 
-                printf("  - %s x%d ($%.2f c/u) -> $%.2f\n",r.variante, cantidad, r.precio, subtotal);
+                printf("  - %s x%d ($%.2f c/u) -- $%.2f\n",r.variante, cantidad, r.precio, subtotal);
             }
 
-            printf("Pedido entregado con exito\n");
+            printf("oedido entregado con exito\n");
             fclose(f);
             return;
         } else {
-//si el pedido se entrego ese se saltea
+//si el pedido ya se entrego tenemos que mover el cursor al siguiente pedido
             int i;
             for (i = 0; i < cant_items; i++) {
-                fseek(f, (int)sizeof(RegistroProducto) + (int)sizeof(int) + (int)sizeof(float), SEEK_CUR);
+                //MUY IMPORTAMNTE tnemos que calcular cuanto ocupa para saltarlo y poner el cursor al inicio del otro pedido
+                //saltea la struct completa dle producto, y el total
+                fseek(f, (int)sizeof(RegistroProducto) + sizeof(int) + sizeof(float), SEEK_CUR);
             }
+
         }
     }
 
-    printf("No se encontro  pedido pendiente para entrega\n");
+    printf("no se encontro  pedido pendiente para entrega\n");
     fclose(f);
 }
 
@@ -629,13 +657,16 @@ void mostrarColaPedidos()
         printf("no hay historial o no se pudo abrir\n");
         return;
     }
-
+    //contador para saber cuantos pedidos pendietnes tenemos en total
     int totalPendientes = 0;
+    //numeraraodr de pedidos
     int nro = 1;
 
-    printf("=== COLA DE PEDIDOS (pendientes) ===\n");
+    printf(" PEDIDOS pendientes \n");
 
+    //se corta cuando no hay mas anda para leer
     while (1) {
+        //nos sirven para guardar temporalmente lo que leemos del archvio
         int id_pedido;
         char cliente[40];
         float total;
@@ -643,7 +674,10 @@ void mostrarColaPedidos()
         bool entregado;
         int cant_items;
 
-
+        //leemos una parte del pedido desde el archvio y la guardamos en
+        //las variables que hicmos arriba
+        //si alguna lectura nos falla es porque llego a su fin o hay error
+        //y entocnes cortamos tod\o y salimos dle while
         if (fread(&id_pedido, sizeof(int), 1, f) != 1) {
             break;
         }
@@ -663,6 +697,7 @@ void mostrarColaPedidos()
             break;
         }
 
+        //si no se entrego imprimos la info
         if (!entregado) {
             printf("Pedido %d:\n", nro);
             printf("ID pedido: #%d\n", id_pedido);
@@ -672,7 +707,9 @@ void mostrarColaPedidos()
 
 
             int i;
+            //si no se entrego recorremos todsos los items
             for (i = 0; i < cant_items; i++) {
+                //variables temprales para guardfar lo que se leee del archivo
                 RegistroProducto r;
                 int cantidad;
                 float subtotal;
@@ -681,17 +718,19 @@ void mostrarColaPedidos()
                 fread(&cantidad, sizeof(int), 1, f);
                 fread(&subtotal, sizeof(float), 1, f);
 
-                printf("  - %s x%d ($%.2f c/u) -> $%.2f\n",
-                       r.variante, cantidad, r.precio, subtotal);
+                printf("  - %s x%d ($%.2f c/u) -- $%.2f\n", r.variante, cantidad, r.precio, subtotal);
             }
             printf("\n");
             totalPendientes++;
             nro++;
-        } else {
+        }
+        //si ya se enrego
+        else {
 
             int i;
             for (i = 0; i < cant_items; i++) {
-                fseek(f, (int)sizeof(RegistroProducto) + (int)sizeof(int) + (int)sizeof(float), SEEK_CUR);
+                //avanzamos el cursos, es = a la funcion anterior
+                fseek(f, (int)sizeof(RegistroProducto) + sizeof(int) + sizeof(float), SEEK_CUR);
             }
         }
     }
@@ -714,7 +753,8 @@ void verHistorialPedidos (FILE*historial, char*nombre_historial)
         return;
     }
 
-    printf(" --- HISTORIAL DE PEDIDOS --- \n");
+    printf(" HISTORIAL DE PEDIDOS \n");
+    //IDEM FUNBCIOES ANTERIORES
     while (1) {
         int id_pedido;
         char cliente[40];
@@ -742,16 +782,25 @@ void verHistorialPedidos (FILE*historial, char*nombre_historial)
             break;
         }
 
+        //imrpimimoslos datos
         printf("Pedido #%d | Cliente: %sTotal: $%.2f | Estado: ", id_pedido, cliente, total);
-        if (entregado)
+
+        //si se entrego lo imprimos entregado y si no pendiente
+        if (entregado) {
             printf("ENTREGADO");
-        else
+        }
+        else {
             printf("PENDIENTE");
+
+        }
+        //imprime cant d eitems de ese peiddo
         printf(" Items: %d\n", cant_items);
 
 
         int i;
+        //recoremops todos los itewms del pedido
         for (i = 0; i < cant_items; i++) {
+            //como siemore lo imprimos
             RegistroProducto r;
             int cantidad;
             float subtotal;
