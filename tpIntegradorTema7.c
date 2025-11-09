@@ -143,7 +143,7 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo)
             break;
 
             case 3:
-                verHistorialPedidos(historial, nombre_historial);
+                 registroVentas();
             break;
             case 4:
                 mostrarColaPedidos();
@@ -525,7 +525,7 @@ Pedido* armarPedido(Nodo *catalogo, FILE **pf, char *nombreArchivo, FILE* histor
 void registroVentas ()
 {
     FILE*archivo= NULL ;
-    char*nombre_archivo= "log.txt" ;
+    char *nombre_archivo= "log.txt" ;
     archivo= fopen (nombre_archivo, "w") ;
     if (archivo== NULL)
     {
@@ -750,22 +750,21 @@ void verHistorialPedidos (FILE*historial, char*nombre_historial)
         printf(" Items: %d\n", cant_items);
 
 
-        {
-            int i;
-            for (i = 0; i < cant_items; i++) {
-                RegistroProducto r;
-                int cantidad;
-                float subtotal;
+        int i;
+        for (i = 0; i < cant_items; i++) {
+            RegistroProducto r;
+            int cantidad;
+            float subtotal;
 
-                fread(&r, sizeof(RegistroProducto), 1, historial);
-                fread(&cantidad, sizeof(int), 1, historial);
-                fread(&subtotal, sizeof(float), 1, historial);
+            fread(&r, sizeof(RegistroProducto), 1, historial);
+            fread(&cantidad, sizeof(int), 1, historial);
+            fread(&subtotal, sizeof(float), 1, historial);
 
-                printf("  %s x%d ($%.2f) -> $%.2f\n", r.variante, cantidad, r.precio, subtotal);
-
-            }
+            printf("  %s x%d ($%.2f c/u) -> $%.2f\n", r.variante, cantidad, r.precio, subtotal);
         }
-    }
+        printf("\n");
+        }
+
 
     fclose(historial);
 }
