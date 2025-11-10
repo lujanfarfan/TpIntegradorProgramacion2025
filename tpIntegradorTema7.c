@@ -765,7 +765,7 @@ void mostrarColaPedidos()
         if (!entregado) {
             printf("Pedido %d:\n", nro);
             printf("ID pedido: #%d\n", id_pedido);
-            printf("Cliente: %s", cliente);
+            printf("Cliente: %s \n", cliente);
             printf("Total a pagar: $%.2f\n", total);
             printf("Items (%d):\n", cant_items);
 
