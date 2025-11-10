@@ -159,6 +159,7 @@ int main(void)
     char *nombreArchivoCatalogo = "catalogo.bin";
     // puntero a la estructura Nodo para representar el catalogo
     Nodo *catalogo = NULL;
+    cargarCatalogoInicial(&catalogo, &archivoCatalogo, nombreArchivoCatalogo);
     // llamamos a la funcion menu pasando el archivo y el catslogo
     menu(archivoCatalogo, nombreArchivoCatalogo, catalogo);
 
@@ -183,11 +184,11 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo)
         printf("4)  ver pedidos pendientes \n");
         printf("5)  salir   \n");
 
+
         scanf("%d", &opcion);
         switch (opcion)
         {
             case 1:
-                cargarCatalogoInicial(&catalogo, &archivoCatalogo, nombreArchivoCatalogo);
                 printf("Tipo de HAMBURGUESAS\n");
                 recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_HAMBURGUESA);
                 printf("Tipo de PANCHOS\n");
@@ -197,8 +198,8 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo)
 
             case 2:
 
-                    entregarPedido();
-            mostrarColaPedidos();
+                entregarPedido();
+                //mostrarColaPedidos();
 
             break;
 
@@ -608,7 +609,7 @@ void registroVentas ()
         printf ("error") ;
         return ;
     }
-        fprintf (archivo, " CANTIDAD DE VENTAS:%d \n TOTAL DINERO FACTURADO: %f \n", cant_total, dinero_facturado) ;
+        fprintf (archivo, " CANTIDAD DE PRODCTOS VENDIDOS:%d \n TOTAL DINERO FACTURADO: %f \n", cant_total, dinero_facturado) ;
         fclose (archivo) ;
 }
 void entregarPedido()
