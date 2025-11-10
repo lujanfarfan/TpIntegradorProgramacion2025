@@ -10,9 +10,9 @@
  3) diagramaa
  */
 // los definimos como cuando lo haciamos con la cant de registros permitidos
-// para poder modificar fcilmente el sitema sin tocar el codigo
+// para poder modificar facilmente el sitema sin tocar el codigo
 // definimos los tipos de productos disponibles
-// si el sistema se amplía (para agregar bebidas o postreso cookies)
+// si el sistema se amplía (para agregar bebidas, postres o cookies)
 // solo habría que agregar los aca
 #define TIPO_PANCHO 0
 #define TIPO_HAMBURGUESA 1
@@ -27,7 +27,7 @@ typedef struct {
     bool quesoDambo;
 } ingredientes;
 
-//representa los condimentos quer tiene cada producto del catalogo si esta en true lo tiene si esta en false no
+//representa los condimentos que tiene cada producto del catalogo si esta en true lo tiene si esta en false no
 typedef struct {
     bool mostaza;
     bool barbacoa;
@@ -39,7 +39,7 @@ typedef struct {
 } condimentos;
 
 // representa un nodo de la lista enlazada que conforma el catlogo de productos, cada nodo es un producto
-// fontiene la info completa de un producto y un puntero al siguiente nodo
+// contiene la info completa de un producto y un puntero al siguiente nodo
 typedef struct Nodo {
     int tipo;
     char variante[60];
@@ -63,8 +63,8 @@ typedef struct {
     int opcion;
 } RegistroProducto;
 
-//representa cada producto qu eel client pido dentro de un pedido
-//sirve para guardar todos los procutos que cliente selecciono dentor de la struct para dsp copiarlos en el archivo
+//representa cada producto que el cliente pido dentro de un pedido
+//sirve para guardar todos los procutos que cliente selecciono dentro de la struct para despues copiarlos en el archivo
 // cada item guarda el producto, la cantidad pedida y su subtotal
 typedef struct ItemPedido {
     struct Nodo *producto;  // puntero al producto seleccionado del catslogo
@@ -73,7 +73,7 @@ typedef struct ItemPedido {
     struct ItemPedido *siguiente; // puntero al sigiente item dentro del pedido
 } ItemPedido;
 
-//tepresenta un pedido completo dentro del sistema
+//representa un pedido completo dentro del sistema
 //contiene los datos del cliente, los items seleccionados y el estado del pedido
 typedef struct Pedido {
     int id_pedido;
@@ -88,7 +88,7 @@ typedef struct Pedido {
 // crea y devuelve un nodo de catalogo Parametros: datos del producto Devuelve: puntero al Nodo creado
 Nodo *crearNodo(int tipo, char *variante, char *descripcion, float precio, ingredientes ing, condimentos cond, int opcion);
 
-// inserta un producto al final de la lista del catslogo Parametros: **cabeza porque puede cambiarla direccion de inciio de la lista y datos del producto
+// inserta un producto al final de la lista del catalogo Parametros: **cabeza porque puede cambiarla direccion de inciio de la lista y datos del producto
 //  enlaza el nuevo nodo en la lista y no devuelve valor
 void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float precio, ingredientes ing, condimentos cond, int opcion);
 
@@ -143,7 +143,7 @@ void liberar_espacio_pedido (Pedido*p) ;
 // cierra el programa liberando catalogo y la lista de pedidos encolados Parametros: catalogo y primer pedi
 void salir (Nodo*catalogo, Pedido*primero) ;
 
-// variables globales usadas para registrar las estadisticas del siste
+// variables globales usadas para registrar las estadisticas del sistema
 //  cant total: cant total de pedidos realizados
 //  dinero_facturado: acumula el monto total generado por todas las ventas
 // se actualizan desde distintas funciones (armarPedido y registroVentas) y permiten generar reportes
@@ -152,9 +152,10 @@ float dinero_facturado = 0;
 
 int main(void)
 {
-    //funcion la usamos para generar numeros aleatorios para el id del cleinte
+
+    //funcion la usamos para generar numeros aleatorios para el id del cliente
     srand(time(NULL));
-    // creamos e inciializamos el archivo del catalogo
+    // creamos e incializamos el archivo del catalogo
     FILE *archivoCatalogo = NULL;
     char *nombreArchivoCatalogo = "catalogo.bin";
     // puntero a la estructura Nodo para representar el catalogo
@@ -189,6 +190,7 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo)
         switch (opcion)
         {
             case 1:
+                system("cls");
                 printf("Tipo de HAMBURGUESAS\n");
                 recorrerArchivo_filtrado(&archivoCatalogo, nombreArchivoCatalogo, TIPO_HAMBURGUESA);
                 printf("Tipo de PANCHOS\n");
@@ -197,25 +199,29 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo)
                 break;
 
             case 2:
-
+                system("cls");
                 entregarPedido();
                 //mostrarColaPedidos();
 
             break;
 
             case 3:
+                system("cls");
                  registroVentas();
             break;
             case 4:
+                system("cls");
                 mostrarColaPedidos();
             break;
 
 
             case 5:
+                system("cls");
                 salir(catalogo, NULL);
             break;
 
             default:
+
                 printf("Opcion no valida\n");
             break;
         }
@@ -229,17 +235,21 @@ void menu(FILE *archivoCatalogo, char *nombreArchivoCatalogo, Nodo *catalogo)
 
 Nodo *crearNodo(int tipo, char *variante, char *descripcion, float precio, ingredientes ing, condimentos cond, int opcion)
 {
+     // reservanos memoria dinámica para el nodo lo definimos con el puntero *n, vamos a poder modificarla cuando y como queramos
     Nodo *n = (Nodo*)malloc(sizeof(Nodo));
+    //verificamos que el espacio en la memoria se asigane correctamente
     if (!n)
     {
         printf("no se pudo asignar memoria\n");
+        //en caso de que no se pueda se mostrara en pantalla el mensaje y se acabara el programa
         return NULL;
     }
-
+        // asignamos el valor del tipo al nodo
         n->tipo = tipo;
-
+        //le damos la cadena 'variante' al campo variante del nodo, -1 para evitrar overflow
         strncpy(n->variante, variante, sizeof(n->variante) - 1);
         strncpy(n->descripcion, descripcion, sizeof(n->descripcion) - 1);
+        // Asigna los valores al campo del nodo
         n->precio = precio;
         n->ingredientes = ing;
         n->condimentos  = cond;
@@ -257,17 +267,23 @@ void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float 
         printf("no se pudo crear el nodo  \n");
         return;
     }
-
+    // verificamos que la lista no está vacía (cabeza apunta a NULL)
         if (*cabeza == NULL)
         {
+            // si esta vacio ponemos el nuevo nodo como cabeza de la lista
             *cabeza = nuevo;
+            // el nodo insertado es el único en la lista, entonces terminamos la funcion
             return;
         }
+        // si la lista no está vacía nos paramos en el último nodo
             Nodo *aux = *cabeza;
+            // si el nodo actual tiene un siguiente avanza al siguiente nodo
             while (aux->siguiente)
             {
                 aux = aux->siguiente;
             }
+
+            // una vez llegado al último nodo, el puntero siguiente apunta al nuevo nodo
                 aux->siguiente = nuevo;
 
 }
@@ -275,22 +291,29 @@ void insertar(Nodo **cabeza, int tipo, char *variante, char *descripcion, float 
 
 void cargarCatalogoInicial(Nodo **cabeza, FILE **catalogo, char *nombreArchivo)
 {
+    //abrimos el archivo binario en modo escritura (wb)
     *catalogo = fopen(nombreArchivo, "wb");
     if (!*catalogo)
     {
         printf("no se pudo abrir el archivo  \n");
         return;
     }
+    // declaracamos una variable del tipo RegistroProducto para almacenar los datos de un producto
         RegistroProducto r;
+        //array de ingredientes para la primera hamburguesa (true/falsa)
         ingredientes ing_1 = (ingredientes){ true, false, true, false, false, false };
         condimentos  cond_1 = (condimentos){ false, false, false, true, false, false, true };
+
+        //llamamos a la funcion instertar
         insertar(cabeza, TIPO_HAMBURGUESA, "Hamburguesa Juli crack",
                 "Doble carne, doble cheddar, bacon y aderezo especial",
                 15000, ing_1, cond_1, 1);
+
         r.tipo = TIPO_HAMBURGUESA;
         strcpy(r.variante, "Hamburguesa Juli crack");
         strcpy(r.descripcion, "Doble carne, doble cheddar, bacon y aderezo especial");
         r.precio = 15000; r.ingredientes = ing_1; r.condimentos = cond_1; r.opcion = 1;
+        // escribimos en un archivo binario
         fwrite(&r, sizeof(RegistroProducto), 1, *catalogo);
 
         ingredientes ing_2 = (ingredientes){ false, true, false, true, true, false };
